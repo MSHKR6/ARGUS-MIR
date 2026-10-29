@@ -59,7 +59,7 @@ img, svg { display: block; max-width: 100%; }
 
 /* ---------- шапка ---------- */
 .top {
-  position: sticky; top: 0; z-index: 20;
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
   background: color-mix(in srgb, var(--bg) 82%, transparent);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
