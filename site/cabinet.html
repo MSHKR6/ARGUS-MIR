@@ -8,94 +8,105 @@
  file:    site/cabinet.html
  author:  mshkr6
  created: 2026-10-29
- about:   Прототип личного кабинета Argus: сводка, список сайтов владельца со статусом
-          и риском, находка «скрипт → действие → получатель» с решением владельца,
-          окно «Добавить сайт» (код датчика + путь обучение → проверка эталона → наблюдение).
-          Данные демонстрационные, хранятся только в странице.
+ about:   Прототип личного кабинета Argus в стилистике сайта «сто глаз»: у каждого сайта свой глаз
+          (спокоен / насторожен / тревога / 152-ФЗ / спит на обучении), сводка, риск, цепочка
+          «скрипт → действие → получатель», решения владельца и окно «Добавить сайт».
+          Данные демонстрационные, живут только в странице.
 -->
 <!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>Argus — кабинет</title>
+  <meta name="theme-color" content="#0b0a10">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 40'%3E%3Cpath d='M3 20C12 7 22 3 32 3s20 4 29 17c-9 13-19 17-29 17S12 33 3 20Z' fill='%23ece9f7'/%3E%3Ccircle cx='32' cy='20' r='11' fill='%238b5cf6'/%3E%3Ccircle cx='32' cy='20' r='5' fill='%230b0a10'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Unbounded:wght@700;800&family=JetBrains+Mono:wght@400;600&display=swap">
   <link rel="stylesheet" href="assets/argus.css">
   <style>
-    .user { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); min-width: 0; }
+    main { position: relative; isolation: isolate; padding-block: clamp(40px, 6vw, 72px) clamp(64px, 8vw, 104px); }
+    .bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; background:
+      radial-gradient(900px 640px at 80% 0%, rgba(124, 92, 255, .2), transparent 70%),
+      radial-gradient(760px 600px at 8% 40%, rgba(139, 92, 246, .08), transparent 70%),
+      radial-gradient(900px 680px at 90% 85%, rgba(124, 92, 255, .08), transparent 70%); }
+
+    .user { margin-left: auto; display: flex; align-items: center; gap: 14px; min-width: 0; font-size: 14px; color: var(--lav); }
     .user span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .user .btn { margin: 0; height: 36px; font-size: 14px; }
     @media (max-width: 560px) { .user span { display: none; } }
 
-    main { padding: 32px 0 64px; }
-    .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
-    .bar h1 { font-size: 28px; }
+    .head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; max-width: 820px; margin: 0 auto; }
+    .head h1 { font: 800 clamp(34px, 5vw, 64px)/1.02 var(--f-body); letter-spacing: -.035em; }
+    .head h1 em { font-style: normal; color: var(--violet-soft); }
+    .head p { color: var(--soft); font-size: 17px; max-width: 60ch; }
+    .head p b { color: var(--red-soft); font-weight: 600; }
+    .head .btn { margin-top: 10px; }
 
-    .sum { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 24px 0 32px; }
-    @media (min-width: 720px) { .sum { grid-template-columns: repeat(4, 1fr); } }
-    .sum .card { padding: 16px 18px; border-left: 3px solid var(--st, var(--line)); }
-    .sum strong { display: block; font-size: 30px; font-weight: 600; line-height: 1.1; }
-    .sum span { font-size: 14px; color: var(--muted); }
+    .sum { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 980px; margin: clamp(32px, 4vw, 48px) auto 0; }
+    @media (min-width: 760px) { .sum { grid-template-columns: repeat(4, 1fr); } }
+    .stat { padding: 20px 16px; border-radius: 20px; background: var(--glass); border: 1px solid var(--line); text-align: center; }
+    .stat b { display: block; font: 800 clamp(30px, 3.4vw, 42px)/1 var(--f-display); font-variant-numeric: tabular-nums; color: var(--st-t, var(--silver)); }
+    .stat span { display: block; margin-top: 8px; font-size: 14px; color: var(--lav); }
 
-    .sites { display: grid; gap: 12px; }
-    .site { border-left: 3px solid var(--st); padding: 20px; }
-    .site-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
-    .site-top h3 { font-size: 18px; margin-right: auto; }
-    .mode { font: 500 12px/1 var(--mono); color: var(--dim); text-transform: uppercase; letter-spacing: .06em; }
-    .site-risk { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; margin-top: 14px; font-size: 14px; color: var(--muted); }
-    .site-risk b { font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
-    .site .what { margin: 12px 0 0; font-size: 15px; color: var(--muted); }
-    .chain { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 10px; background: var(--bg); font: 13px/1.4 var(--mono); }
-    .chain span { color: var(--dim); }
-    .chain .bad { color: var(--crit); }
-    .chain .law { color: var(--law); }
-    .chain .warn { color: var(--med); }
+    .sites { display: grid; gap: 14px; max-width: 980px; margin: 24px auto 0; }
+    .site { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 18px; padding: 22px; border-radius: 22px; background: var(--glass); border: 1px solid var(--line); }
+    .site.is-bad { border-color: color-mix(in srgb, var(--red) 40%, transparent); background: linear-gradient(180deg, rgba(255, 45, 70, .07), transparent 60%), var(--glass); }
+    .site.is-law { border-color: color-mix(in srgb, var(--violet) 35%, transparent); }
+    .site-eye svg { width: 64px; height: 40px; }
+    .site-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+    .site-top h3 { margin-right: auto; font: 700 20px/1.2 var(--f-body); letter-spacing: -.02em; overflow-wrap: anywhere; }
+    .mode { font: 600 11px/1 var(--f-mono); letter-spacing: .06em; padding: 6px 9px; border-radius: 999px; border: 1px solid var(--line2); color: var(--lav); white-space: nowrap; }
+    .site-risk { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; margin-top: 14px; font-size: 14px; color: var(--lav); }
+    .site-risk b { font: 800 16px/1 var(--f-display); color: var(--st-t); font-variant-numeric: tabular-nums; }
+    .what { margin-top: 12px; color: var(--soft); font-size: 15px; }
+    .chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--carbon); border: 1px solid var(--line); font: 400 13px/1.5 var(--f-mono); overflow-wrap: anywhere; }
+    .chain span { color: var(--lav-dim); }
+    .chain .bad { color: var(--red-soft); }
+    .chain .law { color: var(--violet-soft); }
+    .chain .warn { color: var(--amber); }
     .decide { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-    .decide .btn { height: 36px; font-size: 14px; padding: 0 14px; }
     .learn { margin-top: 14px; }
     .learn .risk::after { display: none; }
-    .learn .risk > i { background: var(--em); }
-    .learn p { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+    .learn .risk > i { background: var(--violet-soft); }
+    .learn p { margin-top: 10px; font-size: 14px; color: var(--lav); }
+    @media (max-width: 560px) {
+      .site { grid-template-columns: 1fr; gap: 12px; padding: 18px; }
+      .site-eye svg { width: 48px; height: 30px; }
+    }
 
     /* окно «Добавить сайт» */
-    dialog.modal { width: min(520px, calc(100% - 32px)); }
-    .steps { margin: 18px 0 0; padding: 0; list-style: none; display: grid; gap: 14px; counter-reset: s; }
-    .steps li { position: relative; padding-left: 38px; font-size: 14px; color: var(--muted); }
-    .steps li b { display: block; color: var(--text); font-weight: 500; font-size: 15px; }
-    .steps li::before {
-      counter-increment: s; content: counter(s);
-      position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%;
-      display: grid; place-items: center; font: 500 12px/1 var(--mono); border: 1px solid var(--line); color: var(--em);
-    }
+    #add { width: min(540px, calc(100% - 32px)); }
+    .steps { margin: 18px 0 0; padding: 0; list-style: none; display: grid; gap: 16px; counter-reset: s; }
+    .steps li { position: relative; padding-left: 40px; font-size: 14px; color: var(--soft); }
+    .steps li b { display: block; color: var(--silver); font-weight: 600; font-size: 15px; }
+    .steps li::before { counter-increment: s; content: counter(s); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font: 600 12px/1 var(--f-mono); border: 1px solid var(--line2); color: var(--violet-soft); }
     .snippet { position: relative; margin-top: 8px; }
-    .snippet pre { margin: 0; padding: 12px 14px; padding-right: 92px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); font-size: 12px; color: var(--em); white-space: pre-wrap; word-break: break-all; }
-    .snippet .btn { position: absolute; top: 8px; right: 8px; height: 30px; font-size: 13px; padding: 0 10px; }
+    .snippet pre { margin: 0; padding: 12px 14px; padding-right: 100px; border-radius: 12px; background: var(--carbon); border: 1px solid var(--line2); font: 400 12px/1.5 var(--f-mono); color: var(--violet-soft); white-space: pre-wrap; word-break: break-all; }
+    .snippet .btn { position: absolute; top: 7px; right: 7px; padding: 8px 10px; font-size: 13px; border-radius: 10px; }
   </style>
 </head>
 <body>
 
 <header class="top">
   <div class="wrap">
-    <a class="logo" href="index.html" aria-label="Argus — на главную">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M2 16C6 9 11 6 16 6s10 3 14 10c-4 7-9 10-14 10S6 23 2 16Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="5.5" fill="#8b5cf6"/><circle cx="16" cy="16" r="2.2" fill="#0b0a10"/></svg>
-      ARGUS
-    </a>
+    <a class="logo" href="index.html" aria-label="ARGUS, на главную">ARGUS<i>.</i></a>
     <div class="user">
       <span id="user-email">demo@argus</span>
-      <a class="btn btn-ghost" href="index.html">Выйти</a>
+      <a class="btn sm" href="index.html">Выйти</a>
     </div>
   </div>
 </header>
 
 <main>
+  <div class="bg" aria-hidden="true"></div>
   <div class="wrap">
-    <div class="bar">
-      <h1>Мои сайты</h1>
-      <button class="btn btn-primary" type="button" id="add-open">+ Добавить сайт</button>
+    <div class="head">
+      <div class="eyebrow">Кабинет владельца</div>
+      <h1>Мои <em>сайты</em></h1>
+      <p id="verdict"></p>
+      <button class="btn primary" type="button" id="add-open">+ Добавить сайт</button>
     </div>
-
     <div class="sum" id="sum"></div>
     <div class="sites" id="sites"></div>
   </div>
@@ -103,23 +114,22 @@
 
 <dialog class="modal" id="add" aria-labelledby="add-title">
   <div class="modal-body">
-    <div class="modal-head">
-      <h3 id="add-title">Добавить сайт</h3>
-      <button class="x" type="button" data-close aria-label="Закрыть">×</button>
-    </div>
-    <form id="add-form">
-      <label class="field" style="margin-top:20px">Адрес сайта
-        <input type="text" name="host" required placeholder="example.ru" inputmode="url">
+    <button class="lg-x" type="button" data-close aria-label="Закрыть">×</button>
+    <h3 id="add-title">Добавить <em>сайт</em></h3>
+    <p class="modal-sub">Новый сайт сначала учится: Argus запоминает, что для него норма.</p>
+    <form id="add-form" style="margin-top:22px">
+      <label class="lg-field">Адрес сайта
+        <input type="text" name="host" id="add-host" required placeholder="example.ru" inputmode="url" autocomplete="off">
       </label>
       <ol class="steps">
         <li><b>Вставьте датчик в &lt;head&gt;</b>
           <div class="snippet"><pre id="code"></pre><button class="btn" type="button" id="copy">Копировать</button></div>
         </li>
-        <li><b>Обучение</b>Argus запоминает, как сайт ведёт себя в норме. Не меняйте сайт, пока идёт обучение.</li>
-        <li><b>Проверка эталона</b>Вы просматриваете найденные скрипты и получателей и подтверждаете: «это всё наше».</li>
-        <li><b>Наблюдение</b>Любое отклонение от эталона — находка в кабинете и тревога в Telegram.</li>
+        <li><b>Обучение</b>Argus запоминает, как сайт ведёт себя в норме. Пока идёт обучение, сайт лучше не менять.</li>
+        <li><b>Проверка эталона</b>Вы смотрите найденные скрипты и получателей и подтверждаете, что всё это ваше.</li>
+        <li><b>Наблюдение</b>Любое отличие от эталона — находка в кабинете и сообщение в Telegram.</li>
       </ol>
-      <button class="btn btn-primary btn-block" type="submit" style="margin-top:22px">Начать обучение</button>
+      <button class="btn primary block" type="submit" style="margin-top:22px">Начать обучение</button>
     </form>
   </div>
 </dialog>
@@ -128,56 +138,72 @@
   (function () {
     var LEARN_TARGET = 50;
     var STATUS = {
-      bad:   { cls: 'is-bad',  label: 'Нужны действия' },
-      law:   { cls: 'is-law',  label: '152-ФЗ' },
-      warn:  { cls: 'is-warn', label: 'Проверьте' },
-      incident: { cls: 'is-bad', label: 'Инцидент' },
-      ok:    { cls: 'is-ok',   label: 'Всё хорошо ✓' },
-      learn: { cls: 'is-ok',   label: 'Обучение' }
+      bad:      { cls: 'is-bad',  label: 'Нужны действия' },
+      incident: { cls: 'is-bad',  label: 'Инцидент' },
+      law:      { cls: 'is-law',  label: '152-ФЗ' },
+      warn:     { cls: 'is-warn', label: 'Проверьте' },
+      ok:       { cls: 'is-ok',   label: 'Всё хорошо ✓' },
+      learn:    { cls: 'is-ok',   label: 'Обучение' }
     };
+    var IRIS = { bad: '#ff2d46', incident: '#ff2d46', law: '#c4b5fd', warn: '#ffb547', ok: '#8b5cf6' };
 
     // демо-данные; в продукте — GET /api/sites и /api/sites/:id/summary
     var sites = [
-      { host: 'uyut-remont.ru', status: 'bad', risk: 1.00, mode: 'Наблюдение',
+      { host: 'uyut-remont.ru', status: 'bad', risk: 1.00, mode: 'наблюдение',
         what: 'Новый скрипт читает телефон и карту и отправляет их на чужой сервер.',
-        chain: [['скрипт', 'cdn-stat.example/s.js', 'bad', 'новый'], ['читает', 'phone, card', 'bad', 'не по эталону'], ['→', 'cdn-stat.example', 'law', 'вне РФ']] },
-      { host: 'clinic-dent.ru', status: 'law', risk: 0.85, mode: 'Наблюдение',
+        chain: [['скрипт', 'static-cdn.example/jquery-ui.min.js', 'bad', 'новый'], ['читает', 'phone, card', 'bad', 'не по эталону'], ['→', 'static-cdn.example', 'law', 'вне РФ']] },
+      { host: 'clinic-dent.ru', status: 'law', risk: 0.85, mode: 'наблюдение',
         what: 'E-mail из формы записи уходит в Google Analytics (США). Это не взлом, а нарушение локализации ПДн.',
         chain: [['скрипт', 'googletagmanager.com/gtag.js', '', ''], ['читает', 'email', 'law', ''], ['→', 'google-analytics.com', 'law', 'США']] },
-      { host: 'flowers-don.ru', status: 'warn', risk: 0.51, mode: 'Наблюдение',
-        what: 'Появился виджет Яндекс Карт. Ниже порога тревоги — подтвердите, что это вы.',
+      { host: 'flowers-don.ru', status: 'warn', risk: 0.51, mode: 'наблюдение',
+        what: 'Появился виджет Яндекс Карт. Это ниже порога тревоги, но подтвердите, что виджет ставили вы.',
         chain: [['скрипт', 'api-maps.yandex.ru', 'warn', 'новый'], ['→', 'yandex.ru', '', 'RU']] },
-      { host: 'mshkr6.ru', status: 'ok', risk: 0.04, mode: 'Наблюдение',
+      { host: 'mshkr6.ru', status: 'ok', risk: 0.04, mode: 'наблюдение',
         what: 'Эталон: 6 скриптов, 3 получателя. Отклонений за неделю нет.' },
-      { host: 'shop-new.ru', status: 'learn', risk: 0, mode: 'Обучение', learned: 34 }
+      { host: 'shop-new.ru', status: 'learn', risk: 0, mode: 'обучение', learned: 34 }
     ];
 
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); };
     var fmt = function (n) { return n.toFixed(2).replace('.', ','); };
+    var plural = function (n, a, b, c) { var m = n % 100, k = n % 10; return m > 10 && m < 20 ? c : k === 1 ? a : k > 1 && k < 5 ? b : c; };
+
+    function eye(status) {
+      if (status === 'learn') {
+        return '<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M6 17c8 9 17 13 26 13s18-4 26-13" fill="none" stroke="#a19cb9" stroke-width="3" stroke-linecap="round"/>' +
+          '<path d="M15 25l-3 5M25 29l-1 5M39 29l1 5M49 25l3 5" stroke="#a19cb9" stroke-width="2.5" stroke-linecap="round"/></svg>';
+      }
+      return '<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M3 20C12 7 22 3 32 3s20 4 29 17c-9 13-19 17-29 17S12 33 3 20Z" fill="#ece9f7"/>' +
+        '<circle cx="32" cy="20" r="11" fill="' + IRIS[status] + '"/><circle cx="32" cy="20" r="5" fill="#0b0a10"/><circle cx="35.5" cy="16.5" r="2" fill="#fff"/></svg>';
+    }
 
     try { var u = sessionStorage.getItem('argus-user'); if (u) $('user-email').textContent = u; } catch (e) {}
 
-    function renderSum() {
+    function renderHead() {
       var c = { bad: 0, law: 0, warn: 0, ok: 0 };
       sites.forEach(function (s) { var k = s.status === 'incident' ? 'bad' : s.status; if (k in c) c[k]++; });
+      var open = sites.filter(function (s) { return s.status === 'bad' || s.status === 'law' || s.status === 'warn'; }).length;
+      $('verdict').innerHTML = open
+        ? 'Ждут решения: <b>' + open + ' ' + plural(open, 'сайт', 'сайта', 'сайтов') + '</b>. Красным подсвечено только то, что нужно разобрать.'
+        : 'Всё спокойно. Глаза открыты, отличий от нормы нет.';
       $('sum').innerHTML =
-        '<div class="card"><strong>' + sites.length + '</strong><span>сайтов</span></div>' +
-        '<div class="card is-bad"><strong>' + c.bad + '</strong><span>нужны действия</span></div>' +
-        '<div class="card is-law"><strong>' + c.law + '</strong><span>152-ФЗ</span></div>' +
-        '<div class="card is-ok"><strong>' + c.ok + '</strong><span>всё хорошо</span></div>';
+        '<div class="stat"><b>' + sites.length + '</b><span>' + plural(sites.length, 'сайт', 'сайта', 'сайтов') + '</span></div>' +
+        '<div class="stat is-bad"><b>' + c.bad + '</b><span>нужны действия</span></div>' +
+        '<div class="stat is-law"><b>' + c.law + '</b><span>152-ФЗ</span></div>' +
+        '<div class="stat is-ok"><b>' + c.ok + '</b><span>всё хорошо</span></div>';
     }
 
     function renderSite(s, i) {
       var st = STATUS[s.status];
-      var h = '<article class="card site ' + st.cls + '">' +
-        '<div class="site-top"><h3>' + esc(s.host) + '</h3>' + (s.status === 'learn' ? '' : '<span class="mode">' + s.mode + '</span>') +
+      var h = '<article class="site ' + st.cls + '"><div class="site-eye">' + eye(s.status) + '</div><div>' +
+        '<div class="site-top"><h3>' + esc(s.host) + '</h3>' +
+        (s.status === 'learn' ? '' : '<span class="mode">' + s.mode + '</span>') +
         '<span class="badge ' + st.cls + '">' + st.label + '</span></div>';
 
       if (s.status === 'learn') {
         var p = Math.min(100, Math.round(s.learned / LEARN_TARGET * 100));
         return h + '<div class="learn"><div class="risk"><i style="width:' + p + '%"></i></div>' +
-          '<p>Собрано ' + s.learned + ' из ' + LEARN_TARGET + ' посещений. После обучения проверьте эталон.</p></div></article>';
+          '<p>Глаз пока спит и учится: ' + s.learned + ' из ' + LEARN_TARGET + ' посещений. Потом проверьте эталон.</p></div></div></article>';
       }
 
       h += '<div class="site-risk"><div class="risk"><i style="width:' + Math.max(2, s.risk * 100) + '%"></i></div>' +
@@ -190,18 +216,18 @@
       }
       if (s.status === 'bad' || s.status === 'warn') {
         h += '<div class="decide">' +
-          '<button class="btn" type="button" data-act="accept" data-i="' + i + '">Это мы — принять в эталон</button>' +
-          '<button class="btn" type="button" data-act="incident" data-i="' + i + '">Это атака — инцидент</button>' +
-          '<button class="btn btn-ghost" type="button" data-act="hide" data-i="' + i + '">Скрыть</button></div>';
+          '<button class="btn sm" type="button" data-act="accept" data-i="' + i + '">Это мы — принять в эталон</button>' +
+          '<button class="btn sm" type="button" data-act="incident" data-i="' + i + '">Это атака — инцидент</button>' +
+          '<button class="btn sm" type="button" data-act="hide" data-i="' + i + '">Скрыть</button></div>';
       } else if (s.status === 'law') {
         // правовые находки в эталон не принимаются — только «оформлено»
-        h += '<div class="decide"><button class="btn" type="button" data-act="done" data-i="' + i + '">Оформлено</button></div>';
+        h += '<div class="decide"><button class="btn sm" type="button" data-act="done" data-i="' + i + '">Оформлено</button></div>';
       }
-      return h + '</article>';
+      return h + '</div></article>';
     }
 
     function render() {
-      renderSum();
+      renderHead();
       $('sites').innerHTML = sites.map(renderSite).join('');
     }
 
@@ -209,15 +235,14 @@
       var b = e.target.closest('[data-act]');
       if (!b) return;
       var s = sites[+b.dataset.i];
+      s.chain = null;
       if (b.dataset.act === 'incident') {
-        s.what = 'Отмечено как атака. Инцидент открыт — удалите скрипт и смените доступы.';
-        s.chain = null;
         s.status = 'incident';
+        s.what = 'Отмечено как атака. Инцидент открыт: удалите скрипт и смените доступы.';
       } else {
         s.status = 'ok';
         s.risk = 0.02;
         s.what = { accept: 'Изменение принято в эталон и стало нормой.', hide: 'Находка скрыта.', done: 'Отмечено как оформленное.' }[b.dataset.act];
-        s.chain = null;
       }
       render();
     });
@@ -234,15 +259,14 @@
     dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
     form.elements.host.addEventListener('input', snippet);
     $('copy').addEventListener('click', function () {
-      var btn = this;
-      if (navigator.clipboard) navigator.clipboard.writeText($('code').textContent).then(function () {
-        btn.textContent = 'Готово';
-        setTimeout(function () { btn.textContent = 'Копировать'; }, 1500);
-      }).catch(function () {});
+      var btn = this, code = $('code');
+      function done() { btn.textContent = 'Готово'; setTimeout(function () { btn.textContent = 'Копировать'; }, 1500); }
+      function select() { var r = document.createRange(); r.selectNodeContents(code); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+      if (navigator.clipboard) navigator.clipboard.writeText(code.textContent).then(done, select); else select();
     });
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      sites.push({ host: snippet(), status: 'learn', risk: 0, mode: 'Обучение', learned: 0 });
+      sites.push({ host: snippet(), status: 'learn', risk: 0, mode: 'обучение', learned: 0 });
       dlg.close();
       render();
     });

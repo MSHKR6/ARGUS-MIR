@@ -7,371 +7,1340 @@
 
  file:    site/index.html
  author:  mshkr6
- created: 2026-10-29
- about:   Страница продукта Argus: что это, какую проблему решает, как работает,
-          что внутри личного кабинета, результаты эксперимента. Кнопка «Личный кабинет»
-          открывает окно входа / подключения сайта (прототип — ведёт в демо-кабинет).
+ created: 2026-10-11 (кабинет и вход — 2026-10-29)
+ about:   Демонстрационный сайт ARGUS: купол из ста глаз, шаги «открой глаз», демо-стенд с атаками,
+          эксперимент глазами, кабинет и «линза» про данные. Композиция первого экрана — по сетке
+          динамической симметрии. В шапке — «Личный кабинет»: окно входа / подключения сайта
+          (прототип, ведёт в cabinet.html).
 -->
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Argus — контроль сайта</title>
-  <meta name="description" content="Argus — поведенческий контроль безопасности сайта на стороне клиента: видит, что скрипты делают в браузере посетителя, и ловит утечки и нарушения 152-ФЗ.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/argus.css">
-  <style>
-    .hero { padding: 72px 0 80px; border-top: 0; }
-    .hero .wrap { display: grid; gap: 48px; align-items: center; }
-    @media (min-width: 960px) { .hero .wrap { grid-template-columns: 1.1fr .9fr; } }
-    .hero h1 { margin-top: 18px; }
-    .hero h1 em { font-style: normal; color: var(--em); }
-    .hero .lead { margin: 20px 0 32px; }
-    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ARGUS — сто глаз</title>
+<meta name="description" content="ARGUS — поведенческий контроль сайта: следит за скриптами в браузере посетителя и сообщает владельцу о любом отличии от нормы. Демо-стенд с атаками и эксперимент на 15 посещений.">
+<link rel="canonical" href="https://mshkr6.ru/argus/">
+<meta name="theme-color" content="#0b0a10">
+<script>document.documentElement.classList.add('js')</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 40'%3E%3Cpath d='M3 20C12 7 22 3 32 3s20 4 29 17c-9 13-19 17-29 17S12 33 3 20Z' fill='%23ece9f7'/%3E%3Ccircle cx='32' cy='20' r='11' fill='%238b5cf6'/%3E%3Ccircle cx='32' cy='20' r='5' fill='%230b0a10'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:url" content="https://mshkr6.ru/argus/">
+<meta property="og:title" content="ARGUS — сто глаз на вашем сайте">
+<meta property="og:description" content="Поведенческий контроль сайта: Argus смотрит, что делают скрипты в браузере посетителя, и сразу сообщает о любом отличии от нормы.">
+<meta property="og:image" content="https://mshkr6.ru/argus/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Unbounded:wght@700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="assets/argus.css">
+<style>
+/* Макет: всё по центру, как постер; глаза — главный материал страницы (купол, шаги, эксперимент, линза, подвал).
+   Одна тёмная тема по ливрее: карбон, серебро-лаванда, фиолетовый, красный — только угроза. */
+:root{
+  color-scheme:dark;
+  --carbon:#0b0a10; --carbon-2:#13111b; --carbon-3:#1b1826;
+  --silver:#ece9f7; --soft:#d3d0e2; --lav:#a19cb9; --lav-dim:#6f6a88;
+  --violet:#8b5cf6; --violet-soft:#c4b5fd; --red:#ff2d46; --red-soft:#ff7a8c; --amber:#ffb547;
+  --line:rgba(220,214,255,.10); --line2:rgba(220,214,255,.18); --glass:rgba(236,232,255,.045);
+  --f-display:"Unbounded","Arial Black",system-ui,sans-serif;
+  --f-body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --wrap:1240px; --gut:clamp(16px,4vw,40px);
+  padding:0;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--carbon);scroll-behavior:smooth}
+body{background:var(--carbon);color:var(--silver);font:16px/1.6 var(--f-body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+h1,h2,h3,p{margin:0}
+h2,h3{text-wrap:balance}
+.wrap{max-width:var(--wrap);margin:0 auto;padding-inline:max(var(--gut),env(safe-area-inset-left,0px))}
+.eyebrow{font:600 12px/1.3 var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:var(--lav)}
+.eyebrow b{color:var(--violet-soft);font-weight:600}
+:focus-visible{outline:2px solid var(--violet-soft);outline-offset:3px;border-radius:8px}
+main{position:relative;isolation:isolate}
+/* мягкие пятна света: размеры в пикселях, позиции в процентах — ни одно не упирается в край,
+   поэтому нет резких горизонтальных швов, как было с повторяющейся плиткой фона */
+.bg{position:absolute;inset:0;z-index:-1;pointer-events:none;background:
+  radial-gradient(900px 640px at 80% 2%,rgba(124,92,255,.2),transparent 70%),
+  radial-gradient(760px 600px at 10% 16%,rgba(139,92,246,.08),transparent 70%),
+  radial-gradient(900px 680px at 90% 31%,rgba(124,92,255,.09),transparent 70%),
+  radial-gradient(820px 640px at 8% 47%,rgba(139,92,246,.08),transparent 70%),
+  radial-gradient(900px 680px at 88% 63%,rgba(124,92,255,.09),transparent 70%),
+  radial-gradient(820px 620px at 14% 80%,rgba(139,92,246,.07),transparent 70%)}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 20px;border-radius:14px;font:600 15px/1 var(--f-body);text-decoration:none;border:1px solid var(--line2);background:rgba(11,10,16,.55);color:var(--silver);cursor:pointer;backdrop-filter:blur(6px)}
+.btn:hover{border-color:var(--violet-soft)}
+.btn.primary{background:var(--silver);color:var(--carbon);border-color:var(--silver)}
+.btn.primary:hover{background:#fff}
+.ctas{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:22px}
 
-    /* превью панели в hero */
-    .preview { padding: 0; overflow: hidden; }
-    .preview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
-    .preview-head b { font-weight: 500; }
-    .preview-body { padding: 20px; display: grid; gap: 16px; }
-    .risk-row { display: flex; align-items: baseline; justify-content: space-between; font-size: 14px; color: var(--muted); }
-    .risk-row strong { font: 600 28px/1 var(--font); color: var(--crit); }
-    .chain { display: grid; gap: 8px; font: 13px/1.4 var(--mono); }
-    .chain div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--bg); }
-    .chain span { color: var(--dim); }
-    .chain .bad { color: var(--crit); }
-    .chain .law { color: var(--law); }
-    .preview-foot { display: flex; flex-wrap: wrap; gap: 8px; }
-    .preview-foot .btn { height: 34px; font-size: 13px; padding: 0 12px; }
+/* шапка */
+.top{position:sticky;top:0;padding-top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--carbon) 80%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:20px;height:64px}
+.logo{font:800 20px/1 var(--f-display);letter-spacing:-.01em;text-decoration:none}
+.logo i{font-style:normal;color:var(--violet)}
+.nav{display:flex;gap:4px;margin-left:auto}
+.nav a{padding:8px 12px;border-radius:10px;color:var(--lav);text-decoration:none;font-weight:500;font-size:14px}
+.nav a:hover{color:var(--silver);background:var(--glass)}
+.tag-pill{font:600 11px/1 var(--f-mono);letter-spacing:.06em;padding:7px 10px;border-radius:999px;border:1px solid var(--line2);color:var(--lav);white-space:nowrap}
+@media (max-width:900px){.nav{display:none}.tag-pill{margin-left:auto}}
 
-    /* шаги */
-    .step h3 { margin-top: 14px; }
-    .step code { font-size: 12px; color: var(--em); }
+/* навигация-глаза справа: открыт тот раздел, где вы сейчас */
+.dots{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:15;display:flex;flex-direction:column;gap:14px;align-items:flex-end}
+.dots canvas{position:absolute;left:-40px;top:-16px;width:82px;height:calc(100% + 32px);pointer-events:none}
+.dots a{position:relative;display:flex;align-items:center;justify-content:flex-end;height:21px;width:28px;text-decoration:none}
+.dots a i{display:none}
+.dots a span{position:absolute;right:48px;font:500 12px/1 var(--f-body);color:var(--silver);opacity:0;transform:translateX(6px);transition:.2s;background:rgba(11,10,16,.88);border:1px solid var(--line2);padding:6px 9px;border-radius:8px;white-space:nowrap}
+.dots a:hover span,.dots a:focus-visible span{opacity:1;transform:none}
+@media (max-width:1379px){.dots{display:none}}
 
-    /* две трактовки */
-    .two { display: grid; gap: 16px; margin-top: 36px; }
-    @media (min-width: 720px) { .two { grid-template-columns: 1fr 1fr; } }
-    .two .card { border-top: 3px solid var(--st); }
-    .two ul { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 15px; }
-    .two li { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); }
-    .two li code { color: var(--dim); font-size: 13px; }
+/* первый экран: сцена по центру; опорные точки — из сетки динамической симметрии прямоугольника сцены */
+.stage{position:relative;height:clamp(600px,calc(100svh - 64px),980px);overflow:hidden;isolation:isolate}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%}
+#head{cursor:crosshair;touch-action:pan-y}
+/* пока не подъехал шрифт и не разложен купол — сцену не показываем, чтобы не было «сначала мелко, потом крупно» */
+.stage>*{transition:opacity .7s ease}
+.js .stage:not(.ready)>*{opacity:0;animation:stageLate .5s 2.5s forwards}
+@keyframes stageLate{to{opacity:1}}
+#grid{pointer-events:none;opacity:0;transition:opacity .35s}
+.stage.show-grid #grid{opacity:1}
+.st-title{position:absolute;left:50%;top:0;transform:translateX(-50%);width:min(92vw,820px);text-align:center;display:flex;flex-direction:column;align-items:center;pointer-events:none}
+.st-title>*{pointer-events:auto}
+.st-title h1{font:800 120px/.86 var(--f-display);letter-spacing:-.045em;margin-top:14px;white-space:nowrap}
+.st-title h1 i{font-style:normal;color:var(--violet)}
+.st-title .sub{font:700 clamp(20px,2.2vw,30px)/1.15 var(--f-body);letter-spacing:-.02em;margin-top:16px}
+.st-title .lead{color:var(--soft);font-size:clamp(15px,1.2vw,17px);max-width:50ch;margin-top:12px;text-wrap:balance}
+.dome-label{position:absolute;left:0;top:0;transform:translate(-50%,-50%);font:600 12px/1 var(--f-body);letter-spacing:.32em;text-transform:uppercase;color:var(--silver);text-shadow:0 1px 8px rgba(11,10,16,.95);white-space:nowrap;pointer-events:none}
+.dome-count{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:flex;align-items:baseline;gap:10px;padding:8px 16px;border-radius:999px;background:rgba(11,10,16,.62);border:1px solid rgba(196,181,253,.35);backdrop-filter:blur(6px);white-space:nowrap;pointer-events:none;transition:border-color .3s,box-shadow .3s}
+.dome-count b{font:800 26px/1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--silver)}
+.dome-count span{font:500 13px/1.2 var(--f-body);color:var(--soft);white-space:nowrap}
+.dome-count b{display:inline-block;min-width:3ch;text-align:right}
+.dome-count i{font-style:normal;display:inline-block;min-width:9.8em}
+.dome-count.on{border-color:var(--violet-soft);box-shadow:0 0 0 4px rgba(139,92,246,.18)}
+.scroll-cue{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;font:600 11px/1 var(--f-body);letter-spacing:.24em;text-transform:uppercase;color:var(--silver);text-decoration:none;text-shadow:0 1px 8px rgba(11,10,16,.9)}
+.scroll-cue svg{width:16px;height:16px;animation:cue 1.8s ease-in-out infinite}
+@keyframes cue{50%{transform:translateY(4px)}}
+.grid-btn{position:absolute;left:var(--gut);bottom:16px;font:500 12px/1 var(--f-mono);color:var(--lav);background:rgba(11,10,16,.6);border:1px solid var(--line2);border-radius:999px;padding:9px 12px;cursor:pointer}
+.grid-btn:hover,.grid-btn[aria-pressed="true"]{color:var(--silver);border-color:var(--violet-soft)}
+@media (max-width:900px){.grid-btn .long{display:none}.grid-btn{left:16px;bottom:14px}}
 
-    /* кабинет */
-    .cab { display: grid; gap: 40px; align-items: start; margin-top: 36px; }
-    @media (min-width: 900px) { .cab { grid-template-columns: 1fr 1fr; } }
-    .cab ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 18px; counter-reset: c; }
-    .cab li { position: relative; padding-left: 44px; color: var(--muted); }
-    .cab li b { display: block; color: var(--text); font-weight: 500; }
-    .cab li::before {
-      counter-increment: c; content: counter(c);
-      position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%;
-      display: grid; place-items: center; font: 500 13px/1 var(--mono);
-      border: 1px solid var(--line); color: var(--em);
-    }
-    .mini { display: grid; gap: 10px; }
-    .mini .card { display: grid; grid-template-columns: 1fr auto; gap: 10px 16px; align-items: center; padding: 16px 18px; border-left: 3px solid var(--st); }
-    .mini .risk { grid-column: 1 / -1; }
-    .mini b { font-weight: 500; }
+/* разделитель — ряд маленьких глаз, моргающих волной */
+.eye-rule{display:block;width:100%;height:40px}
 
-    /* цифры */
-    .stats .card strong { display: block; font-size: 40px; font-weight: 600; line-height: 1; }
-    .stats .card p { margin-top: 10px; }
+/* секции: всё по центру */
+section{padding-block:clamp(56px,7vw,104px);scroll-margin-top:calc(70px + env(safe-area-inset-top,0px))}
+.sec-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:820px;margin:0 auto clamp(28px,3.5vw,48px)}
+.sec-head h2{font:800 clamp(30px,4.2vw,56px)/1.02 var(--f-body);letter-spacing:-.035em}
+.sec-head h2 em{font-style:normal;color:var(--violet-soft)}
+.sec-head p{color:var(--soft);font-size:17px;max-width:64ch;text-wrap:balance}
 
-    /* данные */
-    .data { display: grid; gap: 16px; margin-top: 36px; }
-    @media (min-width: 720px) { .data { grid-template-columns: 1fr 1fr; } }
-    .data pre { margin: 12px 0 0; padding: 14px; border-radius: 10px; background: var(--bg); font-size: 13px; color: var(--muted); white-space: pre-wrap; word-break: break-word; }
-    .data .hl { color: var(--em); }
-    .data .no { color: var(--dim); text-decoration: line-through; }
+/* миф */
+.myth-text{max-width:720px;margin:0 auto;text-align:center;display:flex;flex-direction:column;gap:14px;color:var(--soft);font-size:17px}
+.myth-text .big{font:600 clamp(20px,2.2vw,28px)/1.35 var(--f-body);color:var(--silver);letter-spacing:-.015em}
+.myth-text .big span{color:var(--violet-soft)}
+.maps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:40px}
+.map{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:24px 20px;border-radius:22px;background:var(--glass);border:1px solid var(--line)}
+.map canvas{width:180px;height:70px}
+.map small{font:600 11px/1.3 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--lav)}
+.map strong{font:700 19px/1.25 var(--f-body)}
+.map p{color:var(--lav);font-size:14.5px;max-width:34ch}
+@media (max-width:860px){.maps{grid-template-columns:1fr}}
 
-    .final { text-align: center; }
-    .final .lead { margin: 16px auto 28px; }
-    .final .actions { justify-content: center; }
-  </style>
+/* как это работает: откройте глаза по одному */
+.how{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.how-col{display:flex;flex-direction:column;align-items:center;gap:12px;min-width:0}
+.eye-btn{position:relative;width:100%;aspect-ratio:2/1.15;border-radius:24px;border:1px solid var(--line2);background:radial-gradient(circle at 50% 50%,rgba(139,92,246,.18),transparent 70%),var(--carbon-2);cursor:pointer;padding:0}
+.eye-btn canvas{position:absolute;inset:0;width:100%;height:100%}
+.eye-btn .num{position:absolute;left:12px;top:10px;font:700 12px/1 var(--f-mono);color:var(--violet-soft)}
+.eye-btn.invite{animation:invite 1.6s ease-in-out infinite}
+@keyframes invite{50%{box-shadow:0 0 0 6px rgba(139,92,246,.25);border-color:var(--violet-soft)}}
+.step-card{width:100%;padding:20px 18px;border-radius:20px;background:var(--glass);border:1px solid var(--line);text-align:center;min-height:170px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.step-card h3{font:700 19px/1.2 var(--f-body)}
+.step-card p{color:var(--lav);font-size:14.5px}
+.step-card code{font:400 12.5px var(--f-mono);color:var(--violet-soft)}
+.step-card.shut{justify-content:center;color:var(--lav-dim);font:500 13px/1.4 var(--f-mono);border-style:dashed}
+.step-card.opened{animation:reveal .5s ease both}
+@keyframes reveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.how-all{display:flex;justify-content:center;margin-top:18px}
+.linkbtn{background:none;border:0;color:var(--lav);font:500 14px/1 var(--f-body);text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.linkbtn:hover{color:var(--silver)}
+@media (max-width:960px){.how{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.how{grid-template-columns:1fr}}
+
+/* демо-стенд */
+.stand-steps{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:-8px 0 22px;color:var(--lav);font:500 13px/1 var(--f-mono)}
+.stand-steps span{padding:8px 12px;border-radius:999px;border:1px solid var(--line)}
+.stand-steps b{color:var(--violet-soft)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:0 auto 18px;max-width:660px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--line2);background:var(--glass);color:var(--soft);font:500 14px/1 var(--f-body);cursor:pointer}
+.chip:hover{color:var(--silver);border-color:var(--violet-soft)}
+.chip.on{background:var(--silver);color:var(--carbon);border-color:var(--silver)}
+.chip .k{width:8px;height:8px;border-radius:50%;background:var(--red)}
+.chip .k.law{background:var(--violet)}.chip .k.ok{background:var(--amber)}.chip .k.reset{background:var(--lav)}
+.lab{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (min-width:961px){.lab>.panel:last-child{position:sticky;top:84px}}
+@media (max-width:960px){.lab{grid-template-columns:1fr}}
+.panel{position:relative;border-radius:22px;background:var(--carbon-2);border:1px solid var(--line);overflow:hidden;min-width:0}
+.ribbon{display:none;position:absolute;top:18px;right:-44px;z-index:2;transform:rotate(35deg);background:var(--violet);color:#fff;font:700 11px/1 var(--f-body);letter-spacing:.14em;text-transform:uppercase;padding:7px 52px}
+.strip-wrap{position:relative;height:74px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(139,92,246,.10),transparent)}
+#strip{position:absolute;inset:0;width:100%;height:100%}
+.strip-label{position:absolute;left:12px;bottom:6px;font:500 11px/1 var(--f-mono);color:var(--lav-dim)}
+.browser-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.browser-bar .dts{display:flex;gap:6px}.browser-bar .dts i{width:10px;height:10px;border-radius:50%;background:var(--carbon-3)}
+.addr{flex:1;min-width:0;font:400 13px/1 var(--f-mono);padding:8px 12px;border-radius:10px;background:var(--carbon);border:1px solid var(--line);color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.addr.bad{color:var(--red-soft);border-color:rgba(255,45,70,.5)}
+.shop{padding:18px;display:grid;gap:14px}
+.shop h3{font:700 19px/1.2 var(--f-body)}
+.shop .muted{color:var(--lav);font-size:13.5px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.form{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:12px;background:var(--carbon);border:1px solid var(--line);transition:border-color .25s,box-shadow .25s}
+.field.full{grid-column:1/-1}
+.field label{font:600 11px/1 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--lav-dim)}
+.field span{font:500 15px/1.2 var(--f-mono);color:var(--soft)}
+.field.read{border-color:var(--red);box-shadow:0 0 0 3px rgba(255,45,70,.18)}
+.field.read label::after{content:" · читает чужой скрипт";color:var(--red-soft);letter-spacing:.04em;text-transform:none}
+.field.readok{border-color:rgba(255,181,71,.6)}
+.iframe-ghost{display:none;padding:10px 12px;border-radius:12px;border:1px dashed var(--red);color:var(--red-soft);font:500 12.5px/1.4 var(--f-mono)}
+.iframe-ghost.on{display:block}
+.code{font:400 12.5px/1.75 var(--f-mono);padding:12px 14px;border-radius:14px;background:var(--carbon);border:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;color:var(--lav)}
+.code .ln{display:block;padding:0 6px;margin:0 -6px;border-radius:6px}
+.code .ln.in{padding-left:22px}
+.code .ok::after{content:"  ✓ в эталоне";color:var(--lav-dim)}
+.code .ln.bad{background:rgba(255,45,70,.14);color:#ffd1d7}
+.code .ln.bad::after{content:var(--why,"  ← новое");color:var(--red-soft)}
+.code .ln.warn{background:rgba(255,181,71,.12);color:#ffe2b0}
+.code .ln.warn::after{content:"  ← новое";color:var(--amber)}
+.code .ln.new{animation:slide .45s ease}
+@keyframes slide{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.argus{padding:18px;display:grid;gap:14px}
+.ag-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.ag-head .logo{font-size:15px}
+.badge{display:inline-flex;align-items:center;gap:8px;font:700 12px/1 var(--f-body);letter-spacing:.08em;text-transform:uppercase;padding:8px 12px;border-radius:999px;white-space:nowrap}
+.badge.ok{background:rgba(236,233,247,.12);color:var(--silver)}
+.badge.bad{background:var(--red);color:#fff}
+.badge.warn{background:rgba(255,181,71,.18);color:var(--amber)}
+.badge.law{background:var(--violet);color:#fff}
+.ag-title{font:800 clamp(24px,2.6vw,32px)/1.08 var(--f-body);letter-spacing:-.025em}
+.ag-title em{font-style:normal}
+.ag-title em.bad{color:var(--red)}.ag-title em.ok{color:var(--silver)}.ag-title em.warn{color:var(--amber)}.ag-title em.law{color:var(--violet-soft)}
+.ag-lead{color:var(--soft);font-size:14.5px}
+.meter{display:grid;gap:8px}
+.meter-row{display:flex;justify-content:space-between;align-items:baseline}
+.meter-row span{font:600 11px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--lav)}
+.meter-row b{font:800 26px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.track{position:relative;height:10px;display:flex;gap:3px}
+.track span{height:100%;border-radius:4px;opacity:.5}
+.track i{position:absolute;top:-5px;left:0;width:4px;height:20px;border-radius:2px;background:var(--silver);box-shadow:0 0 0 2px var(--carbon-2);transform:translateX(-2px);transition:left .7s cubic-bezier(.2,.8,.2,1)}
+.scale{display:flex;justify-content:space-between;color:var(--lav-dim);font:400 11px/1 var(--f-mono)}
+.finds{display:grid;gap:8px;min-height:40px}
+.find{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding:11px 12px;border-radius:14px;background:var(--glass);border:1px solid var(--line);animation:slide .4s ease both}
+.sv{font:700 10.5px/1 var(--f-body);letter-spacing:.06em;text-transform:uppercase;padding:6px 8px;border-radius:8px;white-space:nowrap}
+.sv.crit{background:var(--red);color:#fff}.sv.high{background:rgba(255,45,70,.18);color:var(--red-soft)}.sv.law{background:rgba(139,92,246,.22);color:var(--violet-soft)}.sv.med{background:rgba(255,181,71,.18);color:var(--amber)}.sv.ok{background:rgba(236,233,247,.1);color:var(--silver)}
+.find b{display:block;font-weight:600;font-size:14px;line-height:1.3}
+.find p{color:var(--lav);font-size:13px;margin-top:3px;overflow-wrap:anywhere}
+.lat{color:var(--lav);font:500 12.5px/1.4 var(--f-mono)}
+.lat b{color:var(--silver)}
+.tg{border-radius:16px;padding:12px;background:linear-gradient(160deg,#17212b,#0e1621);border:1px solid var(--line2);display:grid;gap:6px;animation:slide .45s ease both}
+.tg .who{display:flex;align-items:center;gap:8px;color:#fff;font-weight:600;font-size:13px}
+.tg .who i{width:24px;height:24px;border-radius:50%;background:#2b5278;display:grid;place-items:center;font-style:normal;font-size:12px}
+.tg .msg{padding:10px 12px;border-radius:12px 12px 12px 4px;background:#182533;color:#e9eef3;font-size:13px;line-height:1.45}
+.tg .msg b{color:#fff}
+.tg .msg small{display:block;text-align:right;color:#6d7f8f;font-size:11px;margin-top:2px}
+.tg .go{padding:9px;border-radius:10px;background:#2b5278;color:#fff;text-align:center;font-weight:600;font-size:13px}
+.tg-skip{color:var(--lav);font-size:13px;padding:10px 12px;border-radius:12px;border:1px dashed var(--line2)}
+
+/* эксперимент: 15 посещений — 15 глаз */
+.exp-eyes{position:relative;width:100%;max-width:1100px;height:150px;margin:0 auto}
+.exp-eyes canvas{position:absolute;inset:0;width:100%;height:100%;cursor:pointer}
+.exp-legend{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;color:var(--lav);font:500 13px/1.3 var(--f-body);margin:6px 0 18px}
+.exp-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.exp-card{max-width:760px;margin:0 auto;padding:20px 22px;border-radius:22px;background:var(--carbon-2);border:1px solid var(--line);display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:18px;align-items:center}
+.exp-card .no{font:800 34px/1 var(--f-display);color:var(--lav-dim);font-variant-numeric:tabular-nums}
+.exp-card h3{font:700 20px/1.2 var(--f-body)}
+.exp-card p{color:var(--lav);font-size:14.5px;margin-top:4px}
+.exp-card .found{color:var(--lav-dim);font:400 12.5px/1.45 var(--f-mono);margin-top:6px}
+.exp-card .right{text-align:right;display:grid;gap:6px;justify-items:end}
+.exp-card .rk{font:800 24px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.exp-card .ms{color:var(--lav);font:500 12px/1 var(--f-mono)}
+@media (max-width:640px){.exp-card{grid-template-columns:1fr;text-align:center}.exp-card .right{justify-items:center;text-align:center}}
+.exp-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:28px 0 36px}
+.stat{padding:22px;border-radius:20px;background:var(--glass);border:1px solid var(--line);text-align:center}
+.stat b{display:block;font:800 clamp(36px,4.6vw,58px)/1 var(--f-display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat b small{font-size:.42em;color:var(--lav);letter-spacing:0}
+.stat p{color:var(--soft);margin-top:10px;font-size:15px}
+@media (max-width:760px){.exp-stats{grid-template-columns:1fr}}
+.models-head{text-align:center;margin-bottom:16px}
+.models-head h3{font:700 clamp(22px,2.4vw,28px)/1.2 var(--f-body)}
+.models-head p{color:var(--lav);margin-top:6px}
+.models{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.model{padding:22px;border-radius:22px;background:var(--carbon-2);border:1px solid var(--line);display:grid;gap:14px;align-content:start}
+.model.best{border-color:var(--violet);box-shadow:0 0 0 1px var(--violet),0 20px 60px rgba(139,92,246,.18)}
+.model h4{margin:0;font:700 20px/1.2 var(--f-body);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.model h4 span{font:700 10.5px/1 var(--f-body);letter-spacing:.08em;text-transform:uppercase;padding:5px 8px;border-radius:7px;background:var(--violet);color:#fff}
+.model > p{color:var(--lav);font-size:14px;margin-top:-6px}
+.metric small{display:flex;justify-content:space-between;gap:10px;color:var(--soft);font-size:13.5px;margin-bottom:6px}
+.metric small b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.metric small b.miss{color:var(--red-soft)}
+.segs{display:flex;gap:4px}
+.segs i{flex:0 0 calc((100% - 32px) / 9);height:8px;border-radius:4px;background:var(--violet)}
+.model.best .segs i{background:var(--violet-soft)}
+.segs i.miss{background:rgba(255,45,70,.12);box-shadow:inset 0 0 0 1.5px rgba(255,122,140,.75)}
+@media (max-width:900px){.models{grid-template-columns:1fr}}
+
+/* кабинет: два больших кадра по очереди */
+.shot{max-width:1120px;margin:0 auto;border-radius:20px;overflow:hidden;border:1px solid var(--line2);background:var(--carbon-2);box-shadow:0 40px 120px rgba(0,0,0,.45)}
+.shot img{display:block;width:100%;height:auto}
+.shot-cap{max-width:720px;margin:18px auto 0;text-align:center;color:var(--soft)}
+.shot-cap b{color:var(--silver)}
+.shot-gap{height:clamp(48px,7vw,88px)}
+
+/* линза: глаз видит действие, а не значение */
+.lens{display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,.8fr) minmax(0,1fr);gap:18px;align-items:center;max-width:1100px;margin:0 auto}
+.lens-card{padding:20px;border-radius:20px;background:var(--carbon-2);border:1px solid var(--line);min-width:0}
+.lens-card small{display:block;font:600 11px/1.3 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--lav);margin-bottom:10px}
+.lens-field{padding:12px 14px;border-radius:12px;background:var(--carbon);border:1px solid var(--line)}
+.lens-field label{display:block;font:600 11px/1 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--lav-dim);margin-bottom:6px}
+.lens-field span{font:500 17px/1.2 var(--f-mono);color:var(--silver)}
+.lens-stay{margin-top:10px;color:var(--red-soft);font:500 12.5px/1.3 var(--f-mono)}
+.lens-mid{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.lens-tg{display:inline-flex;padding:3px;border-radius:999px;border:1px solid var(--line2);background:rgba(11,10,16,.6)}
+.lens-tg button{border:0;background:none;color:var(--lav);font:600 12.5px/1 var(--f-body);padding:8px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:background .25s,color .25s}
+.lens-tg button:hover{color:var(--silver)}
+.lens-tg button.on{background:var(--silver);color:var(--carbon)}
+.lens-card,.lens-field span{transition:opacity .45s,filter .45s,border-color .45s}
+.lens.argus .lens-field span{filter:blur(7px);opacity:.5}
+.lens.argus .lens-card:last-child{border-color:rgba(196,181,253,.5)}
+.lens.we .lens-card:last-child{opacity:.45}
+.lens-eye{position:relative;height:150px;width:100%}
+.lens-eye canvas{position:absolute;inset:0;width:100%;height:100%}
+.lens-eye::before,.lens-eye::after{content:"";position:absolute;top:50%;height:1px;width:24%;background:linear-gradient(90deg,transparent,var(--violet-soft))}
+.lens-eye::before{left:-6%}.lens-eye::after{right:-6%;transform:scaleX(-1)}
+.lens-out{font:400 13.5px/1.7 var(--f-mono);color:var(--soft);white-space:pre-wrap}
+.lens-out .k{color:var(--violet-soft)}.lens-out .v{color:var(--silver)}.lens-out .n{color:var(--lav-dim)}
+@media (max-width:860px){.lens{grid-template-columns:1fr}.lens-eye::before,.lens-eye::after{display:none}}
+.pass{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:1100px;margin:22px auto 0}
+.pass>div{padding:20px;border-radius:20px;background:var(--glass);border:1px solid var(--line)}
+.pass h3{font:600 12px/1 var(--f-body);letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
+.pass ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.pass li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px;color:var(--soft);font-size:14.5px}
+.pass li svg{width:16px;height:16px;margin-top:4px}
+@media (max-width:760px){.pass{grid-template-columns:1fr}}
+
+/* подвал: только текст по центру, глаза расставлены по краям */
+.foot{position:relative;overflow:hidden;border-top:1px solid var(--line);padding:0 0 calc(clamp(44px,5vw,60px) + env(safe-area-inset-bottom,0px));scroll-margin-top:0}
+.peacock-stage{position:relative;height:clamp(240px,37vw,460px);margin-top:clamp(10px,1.4vw,18px)}
+.peacock-stage canvas{position:absolute;inset:0;width:100%;height:100%;cursor:pointer;touch-action:pan-y}
+.peacock-hint{margin:0 0 4px;font:500 12px/1 var(--f-mono);white-space:nowrap;color:var(--lav-dim);opacity:0;transition:opacity .8s}
+.foot.pc-open .peacock-hint{opacity:1}
+.to-peacock{color:var(--violet-soft);text-underline-offset:3px}
+.foot-in{position:relative;width:min(88vw,580px);margin:clamp(26px,3vw,38px) auto 0;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
+.foot-in .logo{font-size:clamp(32px,4.4vw,46px)}
+.foot-in nav{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px}
+.foot-in nav a{color:var(--lav);text-decoration:none;font-size:14px}
+.foot-in nav a:hover{color:var(--silver)}
+.foot-in p{color:var(--lav);font-size:14px;max-width:62ch}
+.pc-caption{width:min(88vw,620px);margin:clamp(6px,1vw,12px) auto 0;text-align:center}
+.pc-caption .peacock{margin:0 0 10px;font:600 clamp(17px,1.7vw,21px)/1.4 var(--f-body);color:var(--violet-soft);letter-spacing:-.01em;text-wrap:balance}
+.foot-in{border-top:1px solid var(--line);padding-top:clamp(22px,2.6vw,30px)}
+
+/* телефон: лишний декор убираем, плотным кадрам даём место */
+@media (max-width:700px){
+  .ribbon{display:none}
+  .stage{height:clamp(560px,calc(100svh - 64px - env(safe-area-inset-top,0px)),900px)}
+  .dome-count{padding:7px 13px}
+  .dome-count b{font-size:21px}
+  .dome-count span{font-size:12px}
+  .dome-label{font-size:11px;letter-spacing:.22em}
+  .exp-legend{font-size:12.5px;gap:10px}
+}
+@media (max-width:760px){
+  .shot{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+  .shot img{width:740px;max-width:none}
+  .shot-cap::before{content:"кадр шире экрана — листайте его вбок →";display:block;margin-bottom:10px;color:var(--lav-dim);font:500 12px/1.4 var(--f-mono)}
+}
+@media (max-width:480px){
+  .how{gap:10px}
+  .eye-btn{max-width:172px}
+  .step-card{min-height:0;padding:16px 16px 18px}
+  .stand-steps{font-size:12px;gap:6px}
+  .exp-stats{margin:20px 0 28px}
+  .stat{padding:18px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
 </head>
 <body>
 
 <header class="top">
   <div class="wrap">
-    <a class="logo" href="#" aria-label="Argus — на главную">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M2 16C6 9 11 6 16 6s10 3 14 10c-4 7-9 10-14 10S6 23 2 16Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="5.5" fill="#8b5cf6"/><circle cx="16" cy="16" r="2.2" fill="#0b0a10"/></svg>
-      ARGUS
-    </a>
+    <a class="logo" href="#start" aria-label="ARGUS, в начало">ARGUS<i>.</i></a>
     <nav class="nav" aria-label="Разделы">
-      <a href="#problem">Проблема</a>
-      <a href="#how">Как работает</a>
-      <a href="#cabinet">Кабинет</a>
-      <a href="#results">Эксперимент</a>
+      <a href="#myth">Миф</a><a href="#how">Как работает</a><a href="#stand">Демо-стенд</a><a href="#proof">Эксперимент</a><a href="#cabinet">Кабинет</a><a href="#privacy">Данные</a>
     </nav>
-    <button class="btn btn-primary" type="button" data-open-login>Личный кабинет</button>
+    <button class="btn primary sm cab-btn" type="button" data-open-login>Личный кабинет</button>
   </div>
 </header>
+<nav class="dots" id="dots" aria-label="Разделы страницы">
+  <canvas id="railEyes" aria-hidden="true"></canvas>
+  <a href="#start"><span>Начало</span><i></i></a><a href="#myth"><span>Миф</span><i></i></a><a href="#how"><span>Как работает</span><i></i></a><a href="#stand"><span>Демо-стенд</span><i></i></a><a href="#proof"><span>Эксперимент</span><i></i></a><a href="#cabinet"><span>Кабинет</span><i></i></a><a href="#privacy"><span>Данные</span><i></i></a><a href="#footer"><span>Павлин</span><i></i></a>
+</nav>
 
 <main>
-  <section class="hero">
-    <div class="wrap">
-      <div>
-        <span class="eyebrow">Безопасность сайта · 152-ФЗ</span>
-        <h1>Видит, что скрипты <em>делают</em> на&nbsp;вашем сайте</h1>
-        <p class="lead">Argus ставится одной строкой, запоминает нормальное поведение страниц и сразу сообщает, когда чужой код читает форму, подменяет скрипт или отправляет персональные данные за рубеж.</p>
-        <div class="actions">
-          <button class="btn btn-primary" type="button" data-open-login>Открыть кабинет</button>
-          <a class="btn btn-ghost" href="#how">Как это работает</a>
-        </div>
-      </div>
+  <div class="bg" aria-hidden="true"></div>
 
-      <div class="card preview" aria-label="Пример тревоги в кабинете">
-        <div class="preview-head">
-          <b>uyut-remont.ru</b>
-          <span class="badge is-bad">Нужны действия</span>
-        </div>
-        <div class="preview-body">
-          <div class="risk-row"><span>Риск посещения</span><strong>1,00</strong></div>
-          <div class="risk is-bad"><i style="width:100%"></i></div>
-          <div class="chain">
-            <div><span>скрипт</span> cdn-stat.example/s.js <span>→</span> <span class="bad">новый</span></div>
-            <div><span>читает</span> телефон, карта <span>→</span> <span class="bad">не по эталону</span></div>
-            <div><span>отправляет</span> cdn-stat.example <span>→</span> <span class="law">вне РФ · 152-ФЗ</span></div>
-          </div>
-          <div class="preview-foot">
-            <span class="btn">Это мы — принять</span>
-            <span class="btn">Это атака</span>
-          </div>
-        </div>
+  <section class="stage" id="start" aria-label="ARGUS" style="padding:0">
+    <canvas id="head" role="img" aria-label="Сто глаз Аргуса: купол из глаз и глаза вокруг заголовка. Следят за курсором, по нажатию моргают разом."></canvas>
+    <canvas id="grid" aria-hidden="true"></canvas>
+    <div class="st-title" id="stTitle">
+      <div class="eyebrow">Поведенческий контроль сайта · <b>152-ФЗ</b></div>
+      <h1 id="stH1">ARGUS<i>.</i></h1>
+      <p class="sub">Сто глаз на вашем сайте.</p>
+      <p class="lead">Argus смотрит, что делают скрипты в браузере посетителя, и сразу сообщает владельцу о любом отличии от нормы.</p>
+      <div class="ctas"><a class="btn primary" href="#stand">Смотреть демо-стенд</a><a class="btn" href="#how">Как это работает</a></div>
+    </div>
+    <div class="dome-count" id="domeCount"><b id="cntN">100</b><span>из 100 глаз <i id="cntT">смотрят по сторонам</i></span></div>
+    <div class="dome-label" data-dx="-0.42" data-dy="0.30">скрипты</div>
+    <div class="dome-label" data-dx="0.36" data-dy="0.26">поля форм</div>
+    <div class="dome-label" data-dx="0.42" data-dy="0.50">cookie</div>
+    <div class="dome-label" data-dx="-0.2" data-dy="0.52">запросы</div>
+    <a class="scroll-cue" href="#myth" id="cue">листайте<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></a>
+    <button class="grid-btn" id="gridBtn" type="button" aria-pressed="false">сетка<span class="long"> динамической симметрии</span></button>
+  </section>
+
+  <section id="myth">
+    <div class="wrap">
+      <div class="sec-head"><div class="eyebrow">Почему такое название</div><h2>Аргус Паноптес — <em>«всевидящий»</em></h2></div>
+      <div class="myth-text">
+        <p class="big">Великан из греческих мифов, чьё тело было покрыто глазами. Гера поручила ему сторожить, и мимо него <span>не проходил никто</span>.</p>
+        <p>Обмануть его смог лишь Гермес — покровитель воров — флейтой и долгими историями. Поэтому Argus не верит скриптам на слово: он сравнивает их поведение с эталоном, а не с тем, что они о себе заявляют.</p>
+        <p>После гибели Аргуса Гера перенесла его глаза на хвост павлина. Глаза-перья живут и на этом сайте — найдите их среди остальных. А&nbsp;весь хвост раскроется <a href="#footer" class="to-peacock">в&nbsp;самом конце страницы</a>.</p>
+      </div>
+      <div class="maps">
+        <div class="map"><canvas class="mini" data-mode="many" aria-hidden="true"></canvas><small>Сто глаз</small><strong>Видит всё на странице</strong><p>Каждый скрипт, каждое чтение поля формы, каждый исходящий запрос — и кто его сделал.</p></div>
+        <div class="map"><canvas class="mini" data-mode="wave" aria-hidden="true"></canvas><small>Не спит</small><strong>Моргает по очереди</strong><p>Неделю учится, как сайт ведёт себя в норме. Дальше сравнивает каждое посещение — ночью, в выходные, без вас.</p></div>
+        <div class="map"><canvas class="mini" data-mode="alarm" aria-hidden="true"></canvas><small>Мимо не пройдёшь</small><strong>Любое отличие — на виду</strong><p>Новый скрипт, подмена кода, утечка данных за рубеж — в кабинет и в Telegram.</p></div>
       </div>
     </div>
   </section>
 
-  <section id="problem">
-    <div class="wrap">
-      <span class="eyebrow">Проблема</span>
-      <h2>Сервер не видит, что происходит в браузере</h2>
-      <p class="lead">WAF и антибот защищают вход на сайт. Но скрипт, который уже загрузился на страницу, может прочитать поле «телефон» и отправить его куда угодно — и сервер об этом не узнает.</p>
-      <div class="grid grid-3">
-        <div class="card">
-          <h3>Скиммеры</h3>
-          <p>Чужой код встраивается в форму оплаты и копирует номер карты (атаки класса Magecart).</p>
-        </div>
-        <div class="card">
-          <h3>Подмена кода</h3>
-          <p>Взломанный плагин или CDN: адрес скрипта прежний, а содержимое уже другое.</p>
-        </div>
-        <div class="card">
-          <h3>ПДн за рубежом</h3>
-          <p>С 1 июля 2025 г. первичный сбор ПДн — только в РФ. Счётчик, отправляющий e-mail в иностранный сервис, — штраф до 6 млн ₽.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+  <canvas class="eye-rule" aria-hidden="true"></canvas>
 
   <section id="how">
     <div class="wrap">
-      <span class="eyebrow">Как работает</span>
-      <h2>Четыре шага — от строки кода до решения</h2>
-      <div class="grid grid-4">
-        <div class="card step">
-          <span class="num">01</span>
-          <h3>Датчик</h3>
-          <p>Одна строка в <code>&lt;head&gt;</code>. Записывает, какие скрипты загрузились, что они читают и куда отправляют.</p>
-        </div>
-        <div class="card step">
-          <span class="num">02</span>
-          <h3>Эталон</h3>
-          <p>В режиме обучения Argus запоминает норму: скрипты с хешами, получателей, кто какие поля читает.</p>
-        </div>
-        <div class="card step">
-          <span class="num">03</span>
-          <h3>Наблюдение</h3>
-          <p>Каждое отклонение получает вес, вместе — риск посещения <code>R = 1 − ∏(1 − rᵢ)</code>. Порог тревоги — 0,6.</p>
-        </div>
-        <div class="card step">
-          <span class="num">04</span>
-          <h3>Решение</h3>
-          <p>Тревога приходит в Telegram. Владелец решает: «это мы» — в эталон, «это атака» — в инциденты.</p>
-        </div>
-      </div>
+      <div class="sec-head"><div class="eyebrow">Как это работает</div><h2>Откройте глаза — <em>по одному</em></h2><p>Четыре шага от строки кода до решения владельца. Нажмите на закрытый глаз, чтобы открыть следующий шаг.</p></div>
+      <div class="how" id="howGrid"></div>
+      <div class="how-all"><button class="linkbtn" id="howAll" type="button">открыть все сразу</button></div>
+    </div>
+  </section>
 
-      <div class="two">
-        <div class="card is-bad">
-          <h3>Как вторжение</h3>
-          <ul>
-            <li>Утечка данных <code>0,90</code></li>
-            <li>Скрипт изменён <code>0,85</code></li>
-            <li>Внедрённый редирект <code>0,70</code></li>
-            <li>Чтение лишних полей <code>0,60</code></li>
-            <li>Новый скрипт <code>0,55</code></li>
-          </ul>
+  <canvas class="eye-rule" aria-hidden="true"></canvas>
+
+  <section id="stand">
+    <div class="wrap">
+      <div class="sec-head"><div class="eyebrow">Демо-стенд</div><h2>Стенд «Уют»: <em>атака глазами Аргуса</em></h2><p>Учебный стенд, а не ваш сайт: тестовый сайт ремонта квартир. Включите любой записанный сценарий атаки и&nbsp;посмотрите, что увидит Argus.</p></div>
+      <div class="stand-steps"><span><b>1</b> выберите сценарий</span><span><b>2</b> посмотрите на стенд</span><span><b>3</b> прочитайте вердикт</span></div>
+      <div class="chips" id="chips" role="group" aria-label="Сценарии стенда"></div>
+      <div class="lab">
+        <div class="panel">
+          <div class="ribbon">демо-стенд</div>
+          <div class="strip-wrap"><canvas id="strip" aria-hidden="true"></canvas><span class="strip-label">глаза Аргуса над стендом</span></div>
+          <div class="browser-bar"><span class="dts" aria-hidden="true"><i></i><i></i><i></i></span><div class="addr" id="addr">stand.argus.test/uyut/checkout</div></div>
+          <div class="shop">
+            <div><h3>Стенд «Уют» · заявка на ремонт</h3><p class="muted">Данные в форме — пример, стенд не принимает заказы.</p></div>
+            <div class="form">
+              <div class="field" id="f-name"><label>Имя</label><span>Иван Петров</span></div>
+              <div class="field" id="f-phone"><label>Телефон</label><span>+7 900 000-00-00</span></div>
+              <div class="field" id="f-email"><label>E-mail</label><span>ivan@example.ru</span></div>
+              <div class="field" id="f-addr"><label>Адрес</label><span>ул. Садовая, 12</span></div>
+              <div class="field full" id="f-card"><label>Карта для предоплаты</label><span>2200 •••• •••• 0000</span></div>
+            </div>
+            <div class="iframe-ghost" id="ghost">&lt;iframe src="https://ads-frame.example/" width="1" height="1"&gt; — невидимый фрейм</div>
+            <div class="code" id="code" aria-label="Скрипты в head страницы стенда"></div>
+          </div>
         </div>
-        <div class="card is-law">
-          <h3>Как нарушение 152-ФЗ</h3>
-          <ul>
-            <li>ПДн уходят за рубеж <code>0,85</code></li>
-            <li>Передача в «адекватную» страну <code>0,45</code></li>
-            <li>Иностранный ресурс на странице <code>0,20</code></li>
-          </ul>
-          <p>Одно и то же отклонение Argus трактует сразу двумя способами — по фактическим, а не заявленным потокам данных.</p>
-        </div>
+        <div class="panel"><div class="argus" id="argus" aria-live="polite"></div></div>
       </div>
     </div>
   </section>
+
+  <canvas class="eye-rule" aria-hidden="true"></canvas>
+
+  <section id="proof">
+    <div class="wrap">
+      <div class="sec-head"><div class="eyebrow">Эксперимент</div><h2>15 посещений — <em>15 верных ответов</em></h2><p>Сначала робот 15 раз зашёл на стенд, чтобы Argus выучил норму. Потом ещё 15 раз: 9 — с атакой, 5 — обычным посетителем и 1 — после того, как «владелец» добавил законный виджет. Каждый глаз ниже — одно такое посещение. Нажмите на любой.</p></div>
+      <div class="exp-eyes"><canvas id="expEyes" role="img" aria-label="15 глаз: 9 красных — атаки найдены, 5 спокойных — обычные посещения, 1 жёлтый — законный виджет без тревоги"></canvas></div>
+      <div class="exp-legend"><span><i style="background:var(--red)"></i>атака — поднята тревога</span><span><i style="background:#c4b5fd"></i>обычное посещение — тихо</span><span><i style="background:var(--amber)"></i>законное изменение — на подтверждение</span></div>
+      <div class="exp-card" id="expCard" aria-live="polite"></div>
+      <div class="exp-stats">
+        <div class="stat"><b>9<small> из 9</small></b><p>атак замечено</p></div>
+        <div class="stat"><b>0<small> из 6</small></b><p>ложных тревог на обычных посещениях и законном виджете</p></div>
+        <div class="stat"><b>36–62<small> мс</small></b><p>от действия чужого скрипта до находки</p></div>
+      </div>
+      <div class="models-head"><h3>Почему именно гибрид</h3><p>Те же записи проиграны через три способа искать отклонения. Каждый отрезок — одна проверка: закрашен — справилась, красный контур — промах.</p></div>
+      <div class="models" id="models"></div>
+    </div>
+  </section>
+
+  <canvas class="eye-rule" aria-hidden="true"></canvas>
 
   <section id="cabinet">
     <div class="wrap">
-      <span class="eyebrow">Личный кабинет</span>
-      <h2>Зашли — и сразу видно, что плохо, а что хорошо</h2>
-      <div class="cab">
-        <ol>
-          <li><b>Все ваши сайты на одном экране</b>Каждый с цветом статуса и шкалой риска: красный — угроза, жёлтый — проверьте, фиолетовый — 152-ФЗ.</li>
-          <li><b>Подключение за минуту</b>Добавили домен — получили строку кода датчика и запустили обучение.</li>
-          <li><b>Изменения «было / стало»</b>Новый скрипт, другой хеш, новый получатель — с цепочкой «скрипт → действие → получатель».</li>
-          <li><b>Решение в один клик</b>Принять в эталон, отметить как атаку или скрыть. Правовые находки не принимаются в эталон — только «оформлено».</li>
-          <li><b>Тревоги в Telegram</b>Одно сообщение на одно изменение, без персональных данных в тексте.</li>
-        </ol>
-        <div class="mini" aria-label="Пример списка сайтов">
-          <div class="card is-bad"><b>uyut-remont.ru</b><span class="badge is-bad">Нужны действия</span><div class="risk"><i style="width:100%"></i></div></div>
-          <div class="card is-law"><b>clinic-dent.ru</b><span class="badge is-law">152-ФЗ</span><div class="risk"><i style="width:85%"></i></div></div>
-          <div class="card is-warn"><b>flowers-don.ru</b><span class="badge is-warn">Проверьте</span><div class="risk"><i style="width:51%"></i></div></div>
-          <div class="card is-ok"><b>mshkr6.ru</b><span class="badge is-ok">Всё хорошо ✓</span><div class="risk"><i style="width:4%"></i></div></div>
-          <button class="btn btn-primary btn-block" type="button" data-open-login>Войти в кабинет</button>
-        </div>
+      <div class="sec-head"><div class="eyebrow">Кабинет владельца</div><h2>Красное — <em>значит, пора решать</em></h2><p>Вход в браузере или прямо в Telegram. Всё спокойное — серебристое, красным подсвечено только то, что нужно разобрать.</p></div>
+      <div class="cab-preview" aria-label="Пример: список сайтов в кабинете">
+        <div class="cab-row is-bad"><svg viewBox="0 0 64 40" aria-hidden="true"><path d="M3 20C12 7 22 3 32 3s20 4 29 17c-9 13-19 17-29 17S12 33 3 20Z" fill="#ece9f7"/><circle cx="32" cy="20" r="11" fill="#ff2d46"/><circle cx="32" cy="20" r="5" fill="#0b0a10"/><circle cx="35.5" cy="16.5" r="2" fill="#fff"/></svg><b>uyut-remont.ru</b><span class="badge is-bad">Нужны действия</span><div class="risk"><i style="width:100%"></i></div><span class="cab-r">1,00</span></div>
+        <div class="cab-row is-law"><svg viewBox="0 0 64 40" aria-hidden="true"><path d="M3 20C12 7 22 3 32 3s20 4 29 17c-9 13-19 17-29 17S12 33 3 20Z" fill="#ece9f7"/><circle cx="32" cy="20" r="11" fill="#c4b5fd"/><circle cx="32" cy="20" r="5" fill="#0b0a10"/><circle cx="35.5" cy="16.5" r="2" fill="#fff"/></svg><b>clinic-dent.ru</b><span class="badge is-law">152-ФЗ</span><div class="risk"><i style="width:85%"></i></div><span class="cab-r">0,85</span></div>
+        <div class="cab-row is-warn"><svg viewBox="0 0 64 40" aria-hidden="true"><path d="M3 20C12 7 22 3 32 3s20 4 29 17c-9 13-19 17-29 17S12 33 3 20Z" fill="#ece9f7"/><circle cx="32" cy="20" r="11" fill="#ffb547"/><circle cx="32" cy="20" r="5" fill="#0b0a10"/><circle cx="35.5" cy="16.5" r="2" fill="#fff"/></svg><b>flowers-don.ru</b><span class="badge is-warn">Проверьте</span><div class="risk"><i style="width:51%"></i></div><span class="cab-r">0,51</span></div>
+        <div class="cab-row is-ok"><svg viewBox="0 0 64 40" aria-hidden="true"><path d="M3 20C12 7 22 3 32 3s20 4 29 17c-9 13-19 17-29 17S12 33 3 20Z" fill="#ece9f7"/><circle cx="32" cy="20" r="11" fill="#8b5cf6"/><circle cx="32" cy="20" r="5" fill="#0b0a10"/><circle cx="35.5" cy="16.5" r="2" fill="#fff"/></svg><b>mshkr6.ru</b><span class="badge is-ok">Всё хорошо ✓</span><div class="risk"><i style="width:4%"></i></div><span class="cab-r">0,04</span></div>
       </div>
+      <p class="shot-cap cab-cap"><b>Мои сайты.</b> У каждого сайта свой глаз: спокоен, насторожен или бьёт тревогу. Внутри — что изменилось, было и стало, и кнопки «Принять в эталон» или «Инцидент».</p>
+      <div class="ctas"><button class="btn primary" type="button" data-open-login>Войти в кабинет</button><button class="btn" type="button" data-open-login data-tab="signup">Подключить сайт</button></div>
     </div>
   </section>
 
-  <section id="results">
-    <div class="wrap">
-      <span class="eyebrow">Эксперимент на стенде</span>
-      <h2>Проверено на девяти атаках</h2>
-      <p class="lead">Тестовый сайт с формой заявки: 15 обучающих сессий, 5 контрольных, 9 сценариев атак и один легитимный виджет.</p>
-      <div class="grid grid-3 stats">
-        <div class="card"><strong>9 / 9</strong><p>атак обнаружено, механизм установлен во всех</p></div>
-        <div class="card"><strong>0</strong><p>ложных тревог на нормальных посещениях</p></div>
-        <div class="card"><strong>36–62 мс</strong><p>до находки в большинстве сценариев</p></div>
-      </div>
+  <canvas class="eye-rule" aria-hidden="true"></canvas>
 
-      <div class="data">
-        <div class="card">
-          <h3>Что получает Argus</h3>
-          <pre>{ script: "cdn-stat.example/s.js",
-  action: "read_form_field",
-  data_type: <span class="hl">"phone"</span>,
-  destination: "cdn-stat.example" }</pre>
-          <p>Только категорию поля — «телефон», «карта», «e-mail».</p>
-        </div>
-        <div class="card">
-          <h3>Что не уходит никогда</h3>
-          <pre><span class="no">+7 928 000-00-00</span>
-<span class="no">4276 •••• •••• 1234</span>
-<span class="no">ivan@example.ru</span></pre>
-          <p>Значения остаются в браузере посетителя. Уходит факт, а не данные.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="final">
+  <section id="privacy">
     <div class="wrap">
-      <h2>Изменения случаются. Пусть будут видны.</h2>
-      <p class="lead">Подключите сайт и посмотрите, что на нём происходит у посетителей.</p>
-      <div class="actions">
-        <button class="btn btn-primary" type="button" data-open-login data-tab="signup">Подключить сайт</button>
+      <div class="sec-head"><div class="eyebrow">Данные посетителей</div><h2>Глаза видят действия, <em>а не содержимое</em></h2><p>Датчик замечает, что скрипт прочитал поле, и запоминает только категорию поля. Само значение остаётся в браузере посетителя.</p></div>
+      <div class="lens">
+        <div class="lens-card"><small>Посетитель вводит</small><div class="lens-field"><label id="lensLabel">телефон</label><span id="lensValue">+7 900 123-45-67</span></div><div class="lens-stay">✕ значение остаётся в браузере</div></div>
+        <div class="lens-mid"><div class="lens-tg" id="lensTg" role="group" aria-label="Чьими глазами смотреть"><button type="button" class="on" data-v="we" aria-pressed="true">Что видим мы</button><button type="button" data-v="argus" aria-pressed="false">Что видит Argus</button></div><div class="lens-eye"><canvas id="lensEye" aria-hidden="true"></canvas></div></div>
+        <div class="lens-card"><small>В Argus уходит</small><div class="lens-out" id="lensOut"></div></div>
+      </div>
+      <div class="pass">
+        <div><h3 style="color:var(--silver)">Видят глаза</h3><ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>какой скрипт работает и его контрольная сумма SHA-256</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>кто прочитал поле и его категория: «телефон», «карта»</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>куда ушёл запрос и были ли в нём данные формы</span></li>
+        </ul></div>
+        <div><h3 style="color:var(--red-soft)">Не уходит никогда</h3><ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span>что посетитель ввёл: номер, почту, карту, пароль</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span>содержимое запросов, значения cookie и localStorage</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span>IP-адрес и сведения о браузере — сервер их не хранит</span></li>
+        </ul></div>
       </div>
     </div>
   </section>
 </main>
 
-<footer class="foot">
-  <div class="wrap">
-    Argus — дипломный проект, ДГТУ · <a href="https://mshkr6.ru">mshkr6.ru</a> · <a href="https://t.me/mshkr6">@mshkr6</a>
+<footer class="foot" id="footer">
+  <div class="peacock-stage" id="peacockStage">
+    <canvas id="peacock" role="img" aria-label="Павлин раскрывает хвост, и на перьях открываются глаза Аргуса. Нажмите — он встряхнёт хвостом."></canvas>
+  </div>
+  <div class="pc-caption">
+    <p class="peacock">Гера перенесла глаза Аргуса на&nbsp;хвост&nbsp;павлина.<br>Наши пока живут на&nbsp;сайтах.</p>
+    <p class="peacock-hint" id="peacockHint" aria-hidden="true">нажмите на павлина — он встряхнёт хвостом</p>
+  </div>
+  <div class="foot-in" id="footIn">
+    <div class="logo">ARGUS<i>.</i></div>
+    <nav aria-label="Разделы"><a href="#myth">Миф</a><a href="#how">Как работает</a><a href="#stand">Демо-стенд</a><a href="#proof">Эксперимент</a><a href="#cabinet">Кабинет</a><a href="#privacy">Данные</a></nav>
+    <p>Прототип выпускной квалификационной работы. ДГТУ, кафедра «Информационная безопасность в вычислительных системах и сетях», 2026. Автор — М.А. Карый.</p>
   </div>
 </footer>
 
-<!-- окно входа / подключения -->
+<script>
+(() => {
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const TAU = Math.PI * 2;
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ================= глаза: пять пород ================= */
+// classic — обычный; slit — вертикальный зрачок; peacock — «глаз пера» павлина (из мифа);
+// radar — радар с бегущим лучом; aperture — объектив с лепестками диафрагмы.
+const IRIS = {calm: ['#c4b5fd', '#5b3fd0'], warn: ['#ffd79a', '#c27a00'], alarm: ['#ff8a98', '#c4001a']};
+const DPR = Math.min(2, devicePixelRatio || 1);
+const WEAK = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 2;
+// Радужка рисуется один раз в спрайт и дальше только копируется: волокна стромы, лимбальное
+// кольцо и блики стоят дорого, а зависят лишь от породы, настроения и размера глаза.
+const SPR = new Map();
+function irisSprite(type, mode, ir, seed) {
+  const rq = Math.max(3, Math.round(ir)), key = type + mode + rq + '_' + seed;
+  let cv = SPR.get(key); if (cv) return cv;
+  const pad = Math.ceil(rq * .2) + 2, css = (rq + pad) * 2;
+  cv = document.createElement('canvas'); cv.width = cv.height = Math.ceil(css * DPR); cv.css = css;
+  const x = cv.getContext('2d');
+  x.setTransform(DPR, 0, 0, DPR, (rq + pad) * DPR, (rq + pad) * DPR);
+  paintIris(x, rq, type, mode, seed);
+  SPR.set(key, cv); return cv;
+}
+// Слоями, как ocularist пишет искусственную радужку: подложка-градиент, волокна стромы,
+// мягкий лимб (жёсткий чёрный контур сразу читается как иконка), зрачок, блики роговицы.
+function paintIris(x, r, type, mode, seed) {
+  const rnd = rng(97 + seed * 131 + r * 7), alarm = mode === 'alarm';
+  const [c1, c2] = IRIS[mode] || IRIS.calm;
+  const disc = (rad, fill) => { x.fillStyle = fill; x.beginPath(); x.arc(0, 0, rad, 0, TAU); x.fill(); };
+  if (type === 'peacock') {
+    disc(r, alarm ? '#5c0014' : '#132c66');
+    disc(r * .93, alarm ? '#ff9fae' : '#3fb6a8');
+    disc(r * .78, alarm ? '#ad0019' : '#1d2f7a');
+    disc(r * .63, alarm ? '#ffd9df' : '#e8c87a');
+    disc(r * .49, alarm ? '#ff2d46' : '#7c5cff');
+    x.fillStyle = '#0d0820'; x.beginPath(); x.ellipse(0, r * .03, r * .3, r * .36, 0, 0, TAU); x.fill();
+  } else {
+    const g = x.createRadialGradient(-r * .2, -r * .24, r * .06, 0, 0, r);
+    g.addColorStop(0, c1); g.addColorStop(.6, c1); g.addColorStop(1, c2);
+    disc(r, g);
+    if (r > 4) {
+      x.save(); x.beginPath(); x.arc(0, 0, r * .99, 0, TAU); x.clip(); x.lineCap = 'round';
+      const n = Math.round(clamp(r * 1.6, 12, WEAK ? 18 : 34));
+      for (let i = 0; i < n; i++) {
+        const a = i / n * TAU + (rnd() - .5) * .24, r0 = r * (.3 + rnd() * .12), r1 = r * (.78 + rnd() * .32);
+        x.strokeStyle = rnd() < .45 ? 'rgba(255,255,255,' + (.06 + rnd() * .16).toFixed(3) + ')' : 'rgba(12,8,30,' + (.08 + rnd() * .18).toFixed(3) + ')';
+        x.lineWidth = Math.max(.5, r * (.04 + rnd() * .05));
+        x.beginPath(); x.moveTo(Math.cos(a) * r0, Math.sin(a) * r0); x.lineTo(Math.cos(a) * r1, Math.sin(a) * r1); x.stroke();
+      }
+      if (r > 7) for (let i = 0; i < 3; i++) {
+        const a = rnd() * TAU, d = r * (.4 + rnd() * .2);
+        x.fillStyle = 'rgba(10,6,26,.3)'; x.beginPath();
+        x.ellipse(Math.cos(a) * d, Math.sin(a) * d, r * .1, r * .17, a, 0, TAU); x.fill();
+      }
+      x.restore();
+      const lr = x.createRadialGradient(0, 0, r * .66, 0, 0, r);
+      lr.addColorStop(0, 'rgba(9,6,22,0)'); lr.addColorStop(.72, 'rgba(9,6,22,.34)'); lr.addColorStop(1, 'rgba(9,6,22,.78)');
+      disc(r, lr);
+    }
+    x.fillStyle = '#07050f'; x.beginPath();
+    if (type === 'slit') x.ellipse(0, 0, r * (alarm ? .1 : .16), r * .8, 0, 0, TAU);
+    else x.arc(0, 0, r * (alarm ? .3 : .44), 0, TAU);
+    x.fill();
+    if (r > 6) { x.strokeStyle = 'rgba(255,255,255,.1)'; x.lineWidth = Math.max(.5, r * .05); x.stroke(); }
+  }
+  x.fillStyle = 'rgba(255,255,255,.92)'; x.beginPath(); x.arc(-r * .34, -r * .38, r * .18, 0, TAU); x.fill();
+  if (r > 6) { x.fillStyle = 'rgba(255,255,255,.3)'; x.beginPath(); x.arc(r * .42, r * .36, r * .08, 0, TAU); x.fill(); }
+}
+// радар и диафрагма живут во времени, поэтому рисуются на месте, а не из спрайта
+function drawInstrument(ctx, type, mode, ir, ix, iy, t) {
+  const disc = (rad, fill) => { ctx.fillStyle = fill; ctx.beginPath(); ctx.arc(ix, iy, rad, 0, TAU); ctx.fill(); };
+  if (type === 'radar') {
+    disc(ir, '#15121f');
+    ctx.strokeStyle = mode === 'alarm' ? 'rgba(255,122,140,.7)' : 'rgba(196,181,253,.6)'; ctx.lineWidth = Math.max(.8, ir * .07);
+    [.92, .62, .32].forEach(k => { ctx.beginPath(); ctx.arc(ix, iy, ir * k, 0, TAU); ctx.stroke(); });
+    ctx.beginPath(); ctx.moveTo(ix - ir, iy); ctx.lineTo(ix + ir, iy); ctx.moveTo(ix, iy - ir); ctx.lineTo(ix, iy + ir); ctx.stroke();
+    const a = (RM ? 0 : t / 700) % TAU, col = mode === 'alarm' ? '255,45,70' : '139,92,246';
+    for (let k = 0; k < 6; k++) { ctx.fillStyle = `rgba(${col},${.42 - k * .06})`; ctx.beginPath(); ctx.moveTo(ix, iy); ctx.arc(ix, iy, ir * .95, a - (k + 1) * .16, a - k * .16); ctx.closePath(); ctx.fill(); }
+    disc(ir * .12, mode === 'alarm' ? '#ff2d46' : '#c4b5fd');
+  } else {
+    const g = ctx.createRadialGradient(ix - ir * .3, iy - ir * .3, ir * .1, ix, iy, ir);
+    g.addColorStop(0, mode === 'alarm' ? '#ffb3bd' : '#ddd6ff'); g.addColorStop(1, mode === 'alarm' ? '#7a0012' : '#3b3362');
+    disc(ir, g);
+    const pr = ir * (mode === 'alarm' ? .28 : .42), rot = RM ? 0 : t / 2600;
+    ctx.fillStyle = '#0b0a10'; ctx.beginPath();
+    for (let k = 0; k < 6; k++) { const an = rot + k * TAU / 6; ctx[k ? 'lineTo' : 'moveTo'](ix + Math.cos(an) * pr, iy + Math.sin(an) * pr); }
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(11,10,16,.55)'; ctx.lineWidth = Math.max(.7, ir * .06);
+    for (let k = 0; k < 6; k++) { const an = rot + k * TAU / 6; ctx.beginPath(); ctx.moveTo(ix + Math.cos(an) * pr, iy + Math.sin(an) * pr); ctx.lineTo(ix + Math.cos(an + .9) * ir, iy + Math.sin(an + .9) * ir); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.beginPath(); ctx.arc(ix - ir * .4, iy - ir * .4, ir * .12, 0, TAU); ctx.fill();
+  }
+}
+const LIDG = new WeakMap();
+function lidGrad(ctx) {
+  let g = LIDG.get(ctx);
+  if (!g) { g = ctx.createLinearGradient(0, 0, 0, 1); g.addColorStop(0, 'rgba(8,7,14,.52)'); g.addColorStop(.5, 'rgba(8,7,14,.12)'); g.addColorStop(1, 'rgba(8,7,14,0)'); LIDG.set(ctx, g); }
+  return g;
+}
+function drawEye(ctx, e, t) {
+  if (e.rot) {                                                           // глаз на пере: повёрнут вдоль стержня, взгляд — в координатах страницы
+    const c = Math.cos(e.rot), sn = Math.sin(e.rot);
+    ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.rot);
+    drawEyeAt(ctx, {...e, x: 0, y: 0, lx: e.lx * c + e.ly * sn, ly: -e.lx * sn + e.ly * c}, t);
+    ctx.restore(); return;
+  }
+  drawEyeAt(ctx, e, t);
+}
+function drawEyeAt(ctx, e, t) {
+  const {x, y, r} = e, open = e.open, h = r * .62 * open;
+  let type = e.type || 'classic';
+  // мелкий радар или диафрагма читаются не как глаз, а как значок — им нужен размер
+  if (r < 19 && (type === 'radar' || type === 'aperture')) type = 'classic';
+  if (r < 9 && type === 'slit') type = 'classic';
+  ctx.save();
+  if (open < .07) {
+    ctx.strokeStyle = '#6f6a88'; ctx.lineWidth = Math.max(1.2, r * .09); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x - r, y); ctx.quadraticCurveTo(x, y + r * .42, x + r, y); ctx.stroke();
+    for (let k = -1; k <= 1; k++) { const px = x + k * r * .45, py = y + r * .2 - Math.abs(k) * r * .05; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + k * r * .12, py + r * .24); ctx.stroke(); }
+    ctx.restore(); return;
+  }
+  const mode = e.mode;
+  ctx.beginPath(); ctx.moveTo(x - r, y); ctx.quadraticCurveTo(x, y - h * 1.6, x + r, y); ctx.quadraticCurveTo(x, y + h * 1.6, x - r, y); ctx.closePath();
+  ctx.fillStyle = mode === 'alarm' ? '#ffe6ea' : type === 'radar' ? '#d9d5ec' : '#eeebf8'; ctx.fill();
+  ctx.save(); ctx.clip();
+  const ir = r * (type === 'peacock' ? .55 : .52), ix = x + e.lx * r * .42, iy = y + e.ly * h * .55;
+  if (type === 'radar' || type === 'aperture') drawInstrument(ctx, type, mode, ir, ix, iy, t);
+  else { const sp = irisSprite(type, mode, ir, e.seed || 0); ctx.drawImage(sp, ix - sp.css / 2, iy - sp.css / 2, sp.css, sp.css); }
+  // тень верхнего века: мягкая, растворяется к середине глаза
+  if (h > .6) {
+    ctx.save(); ctx.translate(x, y - h * 1.6); ctx.scale(r * 2, h * 2.7);
+    ctx.fillStyle = lidGrad(ctx); ctx.fillRect(-.5, 0, 1, 1); ctx.restore();
+  }
+  ctx.restore();
+  ctx.lineWidth = Math.max(1, r * .08); ctx.strokeStyle = mode === 'alarm' ? '#ff2d46' : type === 'peacock' ? '#5b3fd0' : '#2a2638'; ctx.stroke();
+  ctx.restore();
+}
+
+/* ================= поле глаз на canvas ================= */
+const POINTER = {x: -1, y: -1, t: 0};
+addEventListener('pointermove', ev => { POINTER.x = ev.clientX; POINTER.y = ev.clientY; POINTER.t = performance.now(); }, {passive: true});
+const fields = [];
+function Field(canvas, layout, opts = {}) {
+  const ctx = canvas.getContext('2d'); let W = 0, H = 0, eyes = [], visible = false, rect = null;
+  const st = {target: null, mode: 'calm', wander: {x: .5, y: .5, t: 0}, allBlink: 0};
+  function resize() {
+    const dpr = Math.min(2, devicePixelRatio || 1); rect = canvas.getBoundingClientRect();
+    W = rect.width; H = rect.height; if (!W || !H) return;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const prev = eyes; eyes = layout(W, H);
+    const t0 = performance.now();
+    eyes.forEach((e, i) => {
+      const p = prev[i];
+      e.to = p && p.to != null && opts.keepOpen ? p.to : (e.to ?? (opts.startOpen ?? 1));
+      e.open = p ? p.open : e.to; e.lx = p ? p.lx : 0; e.ly = p ? p.ly : 0;
+      e.blinkAt = opts.wave ? t0 + 400 + i * opts.wave.step : t0 + 600 + Math.random() * 5000;
+      e.seed = i & 3;
+    });
+    // порядок пробуждения: случайный, чтобы глаза открывались вразнобой, а не кольцом
+    if (opts.breathe && eyes.length) {
+      const ord = eyes.map((_, i) => i), rr = rng(7);
+      for (let i = ord.length - 1; i > 0; i--) { const j = Math.floor(rr() * (i + 1)); const v = ord[i]; ord[i] = ord[j]; ord[j] = v; }
+      ord.forEach((idx, k) => eyes[idx].rank = (k + .5) / ord.length);
+    }
+    draw(t0);
+  }
+  function draw(now) {
+    if (!W) return;
+    rect = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, W, H);
+    if (opts.bg) opts.bg(ctx, W, H);
+    let tx, ty, pointerOn = false;
+    if (st.target) { tx = st.target.x; ty = st.target.y; }
+    else if (POINTER.t && now - POINTER.t < 4000) { tx = POINTER.x - rect.left; ty = POINTER.y - rect.top; pointerOn = true; }
+    else { if (now > st.wander.t) st.wander = {x: Math.random(), y: Math.random() * .8 + .1, t: now + 1500 + Math.random() * 2200}; tx = st.wander.x * W; ty = st.wander.y * H; }
+    // сколько глаз сейчас не спит: две медленные волны, период ~33 и ~88 с
+    if (opts.breathe && !RM) {
+      const sec = now / 1000, w = .6 * Math.sin(sec * .19) + .4 * Math.sin(sec * .071 + 2.3);
+      const lvl = st.wake && now - st.wake < 2600 ? 1 : opts.breathe.min + (1 - opts.breathe.min) * (w * .5 + .5);
+      st.level = lvl; for (const e of eyes) e.to = e.always || e.rank <= lvl ? 1 : 0;
+    }
+    let openN = 0, awakeN = 0;
+    const fastAll = (st.allBlink && now - st.allBlink < 900) || (st.wake && now - st.wake < 2600);
+    for (const e of eyes) {
+      let tgt = st.allBlink && now - st.allBlink < 360 ? 0 : e.to, fast = fastAll;
+      if (!RM && e.to > 0) {
+        if (now > e.blinkAt + 500) e.blinkAt = opts.wave ? now + 300 + eyes.indexOf(e) * opts.wave.step : now + Math.random() * 4000;   // пока поле было за экраном — не моргать всем сразу
+        else if (now > e.blinkAt) { e.blinking = now; e.blinkAt = opts.wave ? now + opts.wave.period : now + 2600 + Math.random() * 6500; }
+        const bt = e.blinking ? (now - e.blinking) / 160 : 9;
+        if (bt < 2) tgt *= bt < 1 ? 1 - bt : bt - 1;
+        if (bt < 5) fast = true;
+        if (Math.random() < .004) { e.jx = (Math.random() - .5) * .3; e.jy = (Math.random() - .5) * .3; }
+      }
+      e.open = RM ? tgt : lerp(e.open, tgt, opts.breathe && !fast ? .045 : tgt < e.open ? .5 : .14);
+      const dx = tx - e.x, dy = ty - e.y, d = Math.hypot(dx, dy), f = Math.min(1, d / (e.r * 6)) / Math.max(d, 1);
+      const free = st.target ? 0 : 1;
+      e.lx = RM ? dx * f : lerp(e.lx, clamp(dx * f + (e.jx || 0) * free, -1, 1), st.target ? .22 : .12);
+      e.ly = RM ? dy * f : lerp(e.ly, clamp(dy * f + (e.jy || 0) * free, -1, 1), st.target ? .22 : .12);
+      e.mode = e.fixedMode || st.mode;
+      if (e.open > .6) openN++;
+      if (e.to > .5) awakeN++;
+      drawEye(ctx, e, now);
+    }
+    if (opts.after) opts.after(ctx, eyes, W, H, now);
+    if (opts.onFrame) opts.onFrame({open: openN, awake: awakeN, total: eyes.length, pointerOn, blinkAll: st.allBlink && now - st.allBlink < 900});
+  }
+  new ResizeObserver(resize).observe(canvas);
+  new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible && RM) draw(performance.now()); }).observe(canvas);
+  const F = {
+    st, canvas, eyes: () => eyes, visible: () => visible, draw,
+    blinkAll() { st.allBlink = performance.now(); st.wake = st.allBlink; },
+    focus(x, y, mode) { st.target = x == null ? null : {x, y}; st.mode = mode || 'calm'; if (RM) draw(performance.now()); },
+    setOpen(i, v) { if (eyes[i]) eyes[i].to = v; if (RM) draw(performance.now()); },
+    relayout: resize
+  };
+  fields.push(F); return F;
+}
+function loop(now) { for (const f of fields) if (f.visible()) f.draw(now); requestAnimationFrame(loop); }
+if (!RM) requestAnimationFrame(loop);
+else addEventListener('pointermove', () => fields.forEach(f => f.visible() && f.draw(performance.now())), {passive: true});
+const pickType = (rand, p = .16) => { const v = rand(); if (v > p) return 'classic'; return ['peacock', 'radar', 'aperture', 'slit'][Math.floor(rand() * 4)]; };
+
+/* ================= первый экран: сетка динамической симметрии ================= */
+// Прямоугольник W×H: две диагонали и перпендикуляры к ним из двух других углов.
+// Основания перпендикуляров — четыре «глаза» прямоугольника при a = H²/(W²+H²).
+function inter([x1, y1, x2, y2], [x3, y3, x4, y4]) {
+  const d = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4); if (Math.abs(d) < 1e-9) return null;
+  const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / d, u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / d;
+  if (t < -1e-6 || t > 1 + 1e-6 || u < -1e-6 || u > 1 + 1e-6) return null;
+  return [x1 + t * (x2 - x1), y1 + t * (y2 - y1)];
+}
+function clipLine(x1, y1, x2, y2, W, H) {
+  let t0 = 0, t1 = 1; const dx = x2 - x1, dy = y2 - y1;
+  for (const [p, q] of [[-dx, x1], [dx, W - x1], [-dy, y1], [dy, H - y1]]) { if (p === 0) { if (q < 0) return [0, 0, 0, 0]; continue; } const r = q / p; if (p < 0) t0 = Math.max(t0, r); else t1 = Math.min(t1, r); }
+  return [x1 + t0 * dx, y1 + t0 * dy, x1 + t1 * dx, y1 + t1 * dy];
+}
+function dynGrid(W, H) {
+  const a = H * H / (W * W + H * H), lo = Math.min(a, 1 - a), hi = Math.max(a, 1 - a), xs = [lo * W, hi * W], ys = [lo * H, hi * H], k = 4;
+  const L = [[0, 0, W, H], [W, 0, 0, H],
+    ...[[W, 0], [0, H]].map(([x, y]) => clipLine(x - H * k, y + W * k, x + H * k, y - W * k, W, H)),
+    ...[[0, 0], [W, H]].map(([x, y]) => clipLine(x - H * k, y - W * k, x + H * k, y + W * k, W, H))];
+  const X = [0, xs[0], xs[1], W], Y = [0, ys[0], ys[1], H], S = [];
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) { if (i === 1 && j === 1) continue; S.push([X[i], Y[j], X[i + 1], Y[j + 1]], [X[i + 1], Y[j], X[i], Y[j + 1]]); }
+  const AL = L.concat(S, [[xs[0], 0, xs[0], H], [xs[1], 0, xs[1], H], [0, ys[0], W, ys[0]], [0, ys[1], W, ys[1]]]), pts = [];
+  for (let i = 0; i < AL.length; i++) for (let j = i + 1; j < AL.length; j++) { const p = inter(AL[i], AL[j]); if (p && p[0] > 1 && p[0] < W - 1 && p[1] > 1 && p[1] < H - 1 && !pts.some(q => Math.hypot(q[0] - p[0], q[1] - p[1]) < 6)) pts.push(p); }
+  return {a, xs, ys, L, S, pts, key: [[xs[0], ys[0]], [xs[1], ys[0]], [xs[0], ys[1]], [xs[1], ys[1]]]};
+}
+const stage = document.querySelector('.stage'), h1 = document.getElementById('stH1'), titleBox = document.getElementById('stTitle');
+const dlabels = [...stage.querySelectorAll('.dome-label')], cue = document.getElementById('cue'), gridBtn = document.getElementById('gridBtn'), domeCount = document.getElementById('domeCount');
+let G = null, DOME = null;
+const relTo = (el, host) => { const r = el.getBoundingClientRect(), s = host.getBoundingClientRect(); return {x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height}; };
+const hit = (x, y, r, R, pad) => x + r + pad > R.x && x - r - pad < R.x + R.w && y + r * .7 + pad > R.y && y - r * .7 - pad < R.y + R.h;
+
+// купол из глаз: спираль подсолнуха, к краю — мельче (перспектива); глаза не заходят на текст
+function domeEyes(D, need, W, H, avoid, rand) {
+  let area = 0; const r0 = rng(3); for (let i = 0; i < 500; i++) { const x = D.cx + (r0() * 2 - 1) * D.R, y = D.cy + (r0() * 2 - 1) * D.R; if (Math.hypot(x - D.cx, y - D.cy) < D.R && y < H && y > 0) area++; } area = area / 500 * 4 * D.R * D.R;
+  let spacing = Math.sqrt(area / Math.max(need, 1)) * 1.02, out = [];
+  for (let tries = 0; tries < 16; tries++) {
+    out = [];
+    for (let i = 0; i < 8000 && out.length < need * 3; i++) {
+      const ang = i * 2.39996323, rr = spacing / 1.77 * Math.sqrt(i + .5); if (rr > D.R) break;
+      const x = D.cx + Math.cos(ang) * rr, y = D.cy + Math.sin(ang) * rr, persp = .42 + .58 * Math.sqrt(Math.max(0, 1 - (rr / D.R) ** 2)), r = spacing * .4 * persp;
+      if (y > H - r - 2 || y < r || x < r || x > W - r) continue;
+      if (avoid.some(o => hit(x, y, r, o, o.pad ?? 6))) continue;
+      out.push({x, y, r, d: rr});
+    }
+    if (out.length >= need) break; spacing *= .93;
+  }
+  out.sort((p, q) => p.y - q.y); out = out.slice(0, need).sort((p, q) => q.d - p.d);
+  out.forEach(e => e.type = pickType(rand)); return out;
+}
+function drawDomeBg(ctx, D) {
+  if (!D) return; const {cx, cy, R} = D;
+  const g = ctx.createRadialGradient(cx, cy - R * .55, R * .1, cx, cy, R);
+  g.addColorStop(0, 'rgba(124,92,255,.30)'); g.addColorStop(.7, 'rgba(40,30,80,.55)'); g.addColorStop(1, 'rgba(19,17,27,.9)');
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.fillStyle = g; ctx.fill();
+  ctx.shadowColor = 'rgba(196,181,253,.55)'; ctx.shadowBlur = 40; ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(214,208,240,.45)'; ctx.stroke(); ctx.restore();
+  const atm = ctx.createRadialGradient(cx, cy, R * .98, cx, cy, R * 1.12); atm.addColorStop(0, 'rgba(139,92,246,.25)'); atm.addColorStop(1, 'rgba(139,92,246,0)');
+  ctx.fillStyle = atm; ctx.beginPath(); ctx.arc(cx, cy, R * 1.12, 0, TAU); ctx.fill();
+}
+
+function compose(W, H) {
+  G = dynGrid(W, H);
+  const mob = W < 900, [kl, kr] = G.xs, [ky1, ky2] = G.ys, rel = el => relTo(el, stage), rand = rng(11);
+  const bigR = Math.max(16, Math.min(36, W * .023));
+  // ARGUS. — ровно между двумя верхними «глазами» сетки
+  const target = mob ? W * .82 : kr - kl;
+  h1.style.fontSize = '100px'; const w100 = h1.getBoundingClientRect().width || 1;
+  h1.style.fontSize = Math.max(54, Math.min(200, 100 * target / w100)) + 'px';
+  titleBox.style.top = '0px';
+  const t0 = rel(titleBox), hr = rel(h1);
+  titleBox.style.top = Math.max(mob ? 18 : 24, ky1 - (hr.y - t0.y) - hr.h / 2) + 'px';
+  const parts = [...titleBox.children].flatMap(el => el.classList.contains('ctas') ? [...el.children] : [el]).map(rel);
+  const TB = parts.reduce((u, r) => ({x: Math.min(u.x, r.x), y: Math.min(u.y, r.y), w: Math.max(u.x + u.w, r.x + r.w) - Math.min(u.x, r.x), h: Math.max(u.y + u.h, r.y + r.h) - Math.min(u.y, r.y)}));
+  // купол проходит через нижние «глаза» сетки, вершина — под текстом
+  const c = (kr - kl) / 2, yTop = Math.max(TB.y + TB.h + (mob ? 30 : 44), H * .5), s = ky2 - yTop;
+  let R; if (s > H * .06 && !mob) R = (c * c + s * s) / (2 * s); else R = Math.max(W * .62, 260);
+  R = Math.max(R, W * .3); DOME = {cx: W / 2, cy: yTop + R, R, top: yTop};
+  // счётчик — на вершине купола; подписи разрядкой — на куполе
+  domeCount.style.left = W / 2 + 'px'; domeCount.style.top = (DOME.top + Math.min(70, R * .16)) + 'px';
+  const rects = parts.map(r => ({...r, pad: 8})); rects.push({...rel(domeCount), pad: 12});
+  dlabels.forEach(el => { const dx = +el.dataset.dx, dy = +el.dataset.dy, x = W / 2 + dx * R, y = Math.min(DOME.top + dy * R, H - 70); el.style.left = x + 'px'; el.style.top = y + 'px'; el.hidden = (mob && Math.abs(dx) > .3) || x < 70 || x > W - 70; if (!el.hidden) rects.push({...rel(el), pad: 10}); });
+  rects.push({...rel(cue), pad: 10}, {...rel(gridBtn), pad: 8});
+  // два больших глаза — в верхние углы сцены: рядом с «ARGUS» они спорили с заголовком
+  const eyes = [], bigY = clamp(ky1 * .42, bigR + 16, H * .3), bigX = Math.max(bigR + 20, W * .085);
+  if (!mob) [[bigX, 'radar'], [W - bigX, 'peacock']].forEach(([bx, bt]) => { if (!rects.some(o => hit(bx, bigY, bigR, o, o.pad))) eyes.push({x: bx, y: bigY, r: bigR, type: bt, always: true}); });
+  // глаза в воздухе вокруг заголовка
+  const free = [], cell = mob ? 40 : 52;
+  for (let gy = cell / 2; gy < H; gy += cell) for (let gx = cell / 2; gx < W; gx += cell) {
+    const x = gx + (rand() - .5) * cell * .7, y = gy + (rand() - .5) * cell * .7, r = (mob ? 6 : 7) + rand() * (mob ? 5 : 8);
+    if (x < r + 8 || x > W - r - 8 || y < r + 8 || y > H - r - 8) continue;
+    if (Math.hypot(x - DOME.cx, y - DOME.cy) < DOME.R + r + 10) continue;
+    if (rects.some(o => hit(x, y, r, o, o.pad))) continue;
+    if (eyes.some(e => Math.hypot(e.x - x, e.y - y) < e.r + r + 14)) continue;
+    free.push({x, y, r, type: pickType(rand, .14)});
+  }
+  free.sort(() => rand() - .5);
+  const nFree = Math.min(free.length, mob ? 18 : 36);
+  return eyes.concat(free.slice(0, nFree), domeEyes(DOME, 100 - eyes.length - nFree, W, H, rects, rand));
+}
+function drawGrid() {
+  const cv = document.getElementById('grid'), r = cv.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
+  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); if (!G) return;
+  const W = r.width, H = r.height;
+  ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(196,181,253,.45)'; G.L.forEach(([a, b, c, d]) => { ctx.beginPath(); ctx.moveTo(a, b); ctx.lineTo(c, d); ctx.stroke(); });
+  ctx.strokeStyle = 'rgba(196,181,253,.16)'; G.S.forEach(([a, b, c, d]) => { ctx.beginPath(); ctx.moveTo(a, b); ctx.lineTo(c, d); ctx.stroke(); });
+  ctx.setLineDash([4, 6]); ctx.strokeStyle = 'rgba(196,181,253,.3)';
+  G.xs.forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }); G.ys.forEach(y => { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); });
+  ctx.setLineDash([]); ctx.fillStyle = 'rgba(196,181,253,.7)'; G.pts.forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 2.5, 0, TAU); ctx.fill(); });
+  ctx.strokeStyle = '#ff2d46'; ctx.lineWidth = 1.5; G.key.forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 7, 0, TAU); ctx.stroke(); });
+  ctx.fillStyle = 'rgba(236,233,247,.75)'; ctx.font = '500 11px "JetBrains Mono", monospace'; ctx.fillText('a = H² / (W² + H²) = ' + G.a.toFixed(3).replace('.', ','), 16, H - 54);
+}
+const cntN = document.getElementById('cntN'), cntT = document.getElementById('cntT');
+const plural = (v, a, b, c) => { const m = v % 100, k = v % 10; return m > 10 && m < 20 ? c : k === 1 ? a : k > 1 && k < 5 ? b : c; };
+let lastCnt = '', cntShown = -1;
+const head = Field(document.getElementById('head'), (W, H) => { const e = compose(W, H); requestAnimationFrame(drawGrid); return e; }, {
+  bg: ctx => drawDomeBg(ctx, DOME), breathe: {min: .3},
+  // число не скачет от каждого моргания: считаем проснувшиеся глаза и подтягиваем цифру плавно
+  onFrame: ({awake, pointerOn, blinkAll}) => {
+    const target = blinkAll ? 100 : awake;
+    cntShown = cntShown < 0 || RM ? target : cntShown + (target - cntShown) * .06;
+    const n = Math.round(cntShown), txt = blinkAll ? 'моргнули разом' : pointerOn ? 'смотрят на вас' : 'смотрят по сторонам';
+    const key = n + txt; if (key === lastCnt) return; lastCnt = key; cntN.textContent = n; cntT.textContent = txt; domeCount.classList.toggle('on', pointerOn && !blinkAll);
+  }
+});
+document.getElementById('head').addEventListener('click', () => head.blinkAll());
+(document.fonts && document.fonts.load ? Promise.race([document.fonts.load('800 100px Unbounded'), new Promise(r => setTimeout(r, 1500))]) : Promise.resolve())
+  .catch(() => {}).then(() => { head.relayout(); requestAnimationFrame(() => requestAnimationFrame(() => stage.classList.add('ready'))); });
+gridBtn.addEventListener('click', () => { const on = stage.classList.toggle('show-grid'); gridBtn.setAttribute('aria-pressed', on); if (on) drawGrid(); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fields.forEach(f => f.relayout()));
+
+/* ================= разделители: ряд глаз, моргающих волной ================= */
+document.querySelectorAll('canvas.eye-rule').forEach((cv, k) => Field(cv, (W, H) => { const n = Math.max(8, Math.floor(W / 40)), r = rng(20 + k), out = []; for (let i = 0; i < n; i++) out.push({x: (i + .5) * W / n, y: H / 2, r: 7 + (i % 3 === 1 ? 2 : 0), type: pickType(r, .12)}); return out; }, {wave: {step: 70, period: 5200}}));
+
+/* ================= миф: маленькие глаза в карточках ================= */
+document.querySelectorAll('canvas.mini').forEach(cv => {
+  const mode = cv.dataset.mode;
+  Field(cv, (W, H) => {
+    if (mode === 'many') return [[.12, .32], [.3, .26], [.5, .3], [.7, .24], [.88, .34], [.22, .72], [.42, .7], [.62, .74], [.8, .7]].map(([a, b], i) => ({x: a * W, y: b * H, r: W * (i % 3 ? .05 : .062), type: i === 4 ? 'peacock' : i === 6 ? 'radar' : 'classic'}));
+    return [0, 1, 2].map(i => ({x: W * (.22 + .28 * i), y: H * .5, r: W * .1, type: mode === 'alarm' ? 'classic' : ['classic', 'peacock', 'aperture'][i], fixedMode: mode === 'alarm' ? 'alarm' : undefined}));
+  }, mode === 'wave' ? {wave: {step: 420, period: 1900}} : {});
+});
+
+/* ================= как это работает: глаза-шаги ================= */
+const STEPS = [
+  ['Строка в &lt;head&gt;', 'Владелец вставляет <code>&lt;script src="…/sensor.js"&gt;</code> первым среди скриптов. Подходит любой сайт: Tilda, WordPress, 1С-Битрикс, свой.', 'classic'],
+  ['Датчик в браузере', 'Видит, какой скрипт загрузился и с какой контрольной суммой, кто прочитал поле и куда ушёл запрос. Значения полей не отправляет.', 'aperture'],
+  ['Эталон и правила', 'Неделю Argus запоминает норму. Потом каждое посещение сравнивается с эталоном и с правилами 152-ФЗ о локализации данных.', 'radar'],
+  ['Решение владельца', 'Обновили плагин сами — «Принять в эталон». Не вы — «Инцидент». Тревога приходит в Telegram с кнопкой «Разобрать».', 'peacock']
+];
+const howGrid = document.getElementById('howGrid'), howF = [];
+howGrid.innerHTML = STEPS.map((s, i) => `<div class="how-col"><button class="eye-btn" type="button" id="hb${i}" aria-label="Шаг ${i + 1}: открыть глаз"><span class="num">${i + 1}</span><canvas aria-hidden="true"></canvas></button><div class="step-card shut" id="hc${i}">глаз закрыт — нажмите</div></div>`).join('');
+STEPS.forEach((s, i) => {
+  const btn = document.getElementById('hb' + i);
+  howF[i] = Field(btn.querySelector('canvas'), (W, H) => [{x: W / 2, y: H / 2 + 4, r: Math.min(W * .3, H * .5), type: s[2]}], {startOpen: 0, keepOpen: true});
+  btn.addEventListener('click', () => openStep(i));
+});
+function openStep(i) {
+  howF[i].setOpen(0, 1);
+  const c = document.getElementById('hc' + i);
+  if (c.classList.contains('shut')) { c.classList.remove('shut'); c.classList.add('opened'); c.innerHTML = `<h3>${STEPS[i][0]}</h3><p>${STEPS[i][1]}</p>`; }
+  document.querySelectorAll('.eye-btn').forEach(b => b.classList.remove('invite'));
+  const next = STEPS.findIndex((_, k) => document.getElementById('hc' + k).classList.contains('shut'));
+  if (next >= 0) document.getElementById('hb' + next).classList.add('invite');
+}
+setTimeout(() => openStep(0), 300);
+document.getElementById('howAll').addEventListener('click', () => STEPS.forEach((_, i) => openStep(i)));
+
+/* ================= демо-стенд ================= */
+const BASE = [['ok', '<script src="/assets/app.js"><\/script>'], ['ok', '<script src="https://mc.yandex.ru/metrika/tag.js"><\/script>']];
+const S = {
+  clean: {label: 'Без атаки', k: 'reset', tone: 'ok', title: 'Всё <em class="ok">спокойно</em>', lead: 'Те же скрипты, те же получатели, те же поля, что в эталоне. Так прошли все 5 контрольных посещений эксперимента.', risk: 0, finds: [], tg: null},
+  skimmer: {label: 'Скиммер', k: 'crit', tone: 'bad', line: '<script src="https://static-cdn.example/jquery-ui.min.js"><\/script>', read: ['f-card', 'f-phone', 'f-name', 'f-email', 'f-addr'],
+    title: 'Данные <em class="bad">уходят на сторону</em>', lead: 'Чужой скрипт прочитал форму стенда и отправил её на посторонний сервер. Так работают атаки класса Magecart.', risk: 1, ms: 62,
+    finds: [['crit', 'Данные из формы уходят на сторону', 'карта, телефон, имя, e-mail, адрес → static-cdn.example'], ['crit', 'Новый скрипт на странице', 'jquery-ui.min.js — в эталоне его не было'], ['high', 'Скрипт читает лишние поля', 'банковская карта, телефон'], ['law', 'Персональные данные ушли за пределы РФ', '152-ФЗ, ч. 5 ст. 18: получатель не определён']],
+    tg: ['Данные из формы уходят на сторону', 'jquery-ui.min.js', 'Поле «банковская карта» отправлено на посторонний сервер; такого потока в эталоне нет.', '1,00', '/checkout']},
+  modified: {label: 'Подмена скрипта', k: 'crit', tone: 'bad', swap: 0, why: '  ← SHA-256 не совпала', read: ['f-card', 'f-phone'],
+    title: 'Знакомый скрипт <em class="bad">подменён</em>', lead: 'Адрес прежний — /assets/app.js, а содержимое другое: контрольная сумма не совпала с эталоном. Типичный след взлома CMS или плагина.', risk: 1, ms: 57,
+    finds: [['crit', 'Знакомый скрипт подменён', 'app.js: адрес тот же, SHA-256 другая'], ['crit', 'Данные из формы уходят на сторону', 'карта, телефон → неизвестный домен'], ['law', 'Персональные данные ушли за пределы РФ', '152-ФЗ: получатель вне РФ']],
+    tg: ['Знакомый скрипт подменён', 'app.js', 'Адрес прежний, содержимое другое; скрипт отправляет поля формы на неизвестный домен.', '1,00', '/checkout']},
+  redirect: {label: 'Редирект', k: 'crit', tone: 'bad', line: '<script>setTimeout(()=>location="https://casino-bonus.example",1500)<\/script>', addr: 'casino-bonus.example/?ref=uyut',
+    title: 'Посетителя <em class="bad">увели</em> на другой сайт', lead: 'Страница стенда сменила адрес без клика и без отправки формы — через 1,5 секунды после загрузки.', risk: .86, ms: 1534,
+    finds: [['crit', 'Посетителя увели на другой сайт', 'переход без действия пользователя'], ['high', 'Новый встроенный скрипт', 'inline-код в шаблоне — в эталоне его не было']],
+    tg: ['Посетителя увели на другой сайт', 'встроенный скрипт', 'Страница сменила адрес без клика посетителя.', '0,86', '/checkout']},
+  iframe: {label: 'Скрытый iframe', k: 'crit', tone: 'bad', line: '<script src="https://ads-frame.example/loader.js"><\/script>', ghost: true,
+    title: 'Вставлен <em class="bad">невидимый фрейм</em>', lead: 'Фрейм 1×1 пиксель с постороннего домена — так подгружают рекламу, фишинговую форму или майнер.', risk: 1, ms: 36,
+    finds: [['crit', 'В страницу вставлен чужой iframe', 'ads-frame.example, 1×1 px'], ['high', 'Новый скрипт и незнакомый домен', 'loader.js → ads-frame.example'], ['med', 'Много мелких отклонений сразу', 'суммарный риск 1 − ∏(1 − rᵢ) выше порога']],
+    tg: ['В страницу вставлен чужой iframe', 'loader.js', 'Невидимый фрейм с постороннего домена.', '1,00', '/checkout']},
+  storage: {label: 'Чтение cookie', k: 'crit', tone: 'bad', line: '<script src="https://chat-widget.example/w.js"><\/script>',
+    title: 'Чужой скрипт <em class="bad">читает cookie</em>', lead: 'Скрипт обратился к cookie, чего в эталоне не делал. Там лежат идентификаторы сессии посетителя.', risk: .98, ms: 43,
+    finds: [['crit', 'Доступ к cookie', 'w.js читает document.cookie'], ['high', 'Новый скрипт и незнакомый домен', 'chat-widget.example']],
+    tg: ['Доступ к cookie или хранилищу', 'w.js', 'Новый скрипт читает cookie посетителя.', '0,98', '/']},
+  ga: {label: 'Google Analytics', k: 'law', tone: 'law', line: '<script src="https://www.googletagmanager.com/gtag/js"><\/script>', read: ['f-email'], readSoft: true,
+    title: 'Нарушение <em class="law">152-ФЗ</em>', lead: 'Это не взлом: «владелец» стенда сам подключил Google Analytics и передаёт туда e-mail. Но персональные данные уходят за пределы РФ.', risk: 1, ms: 1059,
+    finds: [['law', 'Персональные данные ушли за пределы РФ', 'e-mail → www.google-analytics.com · 152-ФЗ, ч. 5 ст. 18 и ст. 12'], ['high', 'Данные из формы уходят на сторону', 'такого потока в эталоне нет'], ['med', 'Ресурс с иностранного сервера', 'IP-адрес и cookie посетителя уходят за рубеж']],
+    tg: ['Персональные данные ушли за пределы РФ', 'googletagmanager.com', 'E-mail из формы передаётся в Google Analytics.', '1,00', '/checkout']},
+  legit: {label: 'Законный виджет', k: 'ok', tone: 'warn', line: '<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU"><\/script>', warnLine: true,
+    title: 'Есть <em class="warn">изменение</em>, тревоги нет', lead: '«Владелец» добавил Яндекс Карты. Сервис российский и известный, полей не читает: риск 0,51 — ниже порога 0,6. Argus просит подтвердить, а не бьёт тревогу.', risk: .51, ms: null,
+    finds: [['med', 'Новый скрипт: Яндекс Карты', 'api-maps.yandex.ru — РФ, известный сервис'], ['ok', 'Похоже на вас', 'нажмите «Принять в эталон» — и это станет нормой']], tg: null}
+};
+const ORDER = ['clean', 'skimmer', 'modified', 'redirect', 'iframe', 'storage', 'ga', 'legit'];
+const chips = document.getElementById('chips'), codeEl = document.getElementById('code'), ag = document.getElementById('argus'), addr = document.getElementById('addr'), ghost = document.getElementById('ghost');
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+chips.innerHTML = ORDER.map(k => `<button class="chip" type="button" id="sc-${k}" data-k="${k}"><span class="k ${S[k].k}"></span>${S[k].label}</button>`).join('');
+const strip = Field(document.getElementById('strip'), (W, H) => { const n = Math.max(10, Math.min(30, Math.floor(W / 30))), r = rng(5), out = []; for (let i = 0; i < n; i++) out.push({x: (i + .5) * W / n, y: H * (i % 2 ? .66 : .36), r: Math.min(W / n * .4, 12), type: pickType(r, .2)}); return out; });
+const SEV = {crit: 'критично', high: 'высокий', med: 'средний', law: '152-ФЗ', ok: 'норма'}, BADGE = {ok: 'Всё хорошо', bad: 'Нужны действия', warn: 'Проверьте', law: 'Нарушение 152-ФЗ'};
+let timers = [];
+function focusInj(mode) { const el = document.getElementById('inj') || codeEl.querySelector('.ln.bad'); const cv = document.getElementById('strip').getBoundingClientRect(); if (!el) return strip.focus(null, null, 'calm'); const r = el.getBoundingClientRect(); strip.focus(Math.min(r.left + 80, r.right) - cv.left, r.top + r.height / 2 - cv.top, mode); }
+function run(k) {
+  timers.forEach(clearTimeout); timers = []; const s = S[k];
+  chips.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.k === k));
+  document.querySelectorAll('.field').forEach(f => f.classList.remove('read', 'readok'));
+  ghost.classList.toggle('on', !!s.ghost); addr.textContent = 'stand.argus.test/uyut/checkout'; addr.classList.remove('bad');
+  const lines = BASE.map(([c, t], i) => (s.swap === i) ? `<span class="ln in bad" style="--why:'${s.why}'">${esc(t)}</span>` : `<span class="ln in ok">${esc(t)}</span>`);
+  if (s.line) lines.push(`<span class="ln in ${s.warnLine ? 'warn' : 'bad'} new" id="inj">${esc(s.line)}</span>`);
+  codeEl.innerHTML = '<span class="ln" style="color:var(--lav-dim)">&lt;head&gt;</span>' + lines.join('') + '<span class="ln" style="color:var(--lav-dim)">&lt;/head&gt;</span>';
+  const meter = `<div class="meter"><div class="meter-row"><span>Риск посещения</span><b id="rv">0,00</b></div><div class="track"><span style="width:35%;background:#d9d5ec"></span><span style="width:25%;background:var(--amber)"></span><span style="width:20%;background:#ff6b80"></span><span style="width:20%;background:var(--red)"></span><i id="mk" style="left:0%"></i></div><div class="scale"><span>0 · норма</span><span>0,35</span><span>0,6 · тревога</span><span>1</span></div></div>`;
+  ag.innerHTML = `<div class="ag-head"><span class="logo">ARGUS<i>.</i></span><span class="badge ok" id="bd">${k === 'clean' ? BADGE.ok : 'Смотрит…'}</span></div><h3 class="ag-title">${k === 'clean' ? s.title : 'Сто глаз <em class="ok">смотрят</em>'}</h3><p class="ag-lead">${k === 'clean' ? s.lead : 'Датчик на стенде заметил новое поведение и сравнивает его с эталоном…'}</p>${meter}<div class="finds" id="fd"></div><div id="tgw"></div>`;
+  if (k === 'clean') { strip.focus(null, null, 'calm'); return; }
+  timers.push(setTimeout(() => focusInj('calm'), 150));
+  if (s.read) timers.push(setTimeout(() => s.read.forEach(id => document.getElementById(id).classList.add(s.readSoft ? 'readok' : 'read')), 500));
+  if (s.addr) timers.push(setTimeout(() => { addr.textContent = s.addr; addr.classList.add('bad'); }, 900));
+  timers.push(setTimeout(() => {
+    focusInj(s.tone === 'bad' || s.tone === 'law' ? 'alarm' : s.tone === 'warn' ? 'warn' : 'calm');
+    const bd = document.getElementById('bd'); bd.className = 'badge ' + s.tone; bd.textContent = BADGE[s.tone];
+    ag.querySelector('.ag-title').innerHTML = s.title; ag.querySelector('.ag-lead').textContent = s.lead;
+    const rv = document.getElementById('rv'); document.getElementById('mk').style.left = (s.risk * 100) + '%';
+    rv.style.color = s.risk >= .6 ? 'var(--red)' : s.risk >= .35 ? 'var(--amber)' : 'var(--silver)';
+    const t0 = performance.now(); const anim = now => { const p = Math.min(1, (now - t0) / 700); rv.textContent = (s.risk * (RM ? 1 : p)).toFixed(2).replace('.', ','); if (p < 1 && !RM) requestAnimationFrame(anim); }; requestAnimationFrame(anim);
+    document.getElementById('fd').innerHTML = s.finds.map(([sv, t, d], i) => `<div class="find" style="animation-delay:${i * 90}ms"><span class="sv ${sv}">${SEV[sv]}</span><div><b>${t}</b><p>${esc(d)}</p></div></div>`).join('')
+      + `<div class="lat">${s.ms != null ? `найдено за <b>${s.ms >= 1000 ? (s.ms / 1000).toFixed(1).replace('.', ',') + ' с' : s.ms + ' мс'}</b> после начала посещения · данные эксперимента` : 'тревоги нет · изменение ушло «владельцу» на подтверждение'}</div>`;
+    document.getElementById('tgw').innerHTML = s.tg ? `<div class="tg"><div class="who"><i>A</i>ARGUS · бот в Telegram</div><div class="msg"><b>ARGUS · стенд «Уют»</b><br><b>${s.tg[0]}</b><br>Источник: ${esc(s.tg[1])}<br>${s.tg[2]}<br>Риск ${s.tg[3]} · страница ${s.tg[4]}<small>сейчас</small></div><div class="go">Разобрать</div></div>` : `<div class="tg-skip">Сообщение в Telegram не отправлено: риск ниже порога, владельца не будят по пустякам.</div>`;
+  }, 650));
+}
+chips.addEventListener('click', e => { const b = e.target.closest('.chip'); if (b) run(b.dataset.k); });
+addEventListener('resize', () => { const on = chips.querySelector('.chip.on'); if (on && on.dataset.k !== 'clean') setTimeout(() => focusInj(strip.st.mode), 120); });
+run('clean');
+
+/* ================= эксперимент: 15 посещений — 15 глаз ================= */
+const EXP = [
+  ['Скиммер', 'Чужой скрипт читает форму и отправляет её на посторонний сервер', 1, 62, 'атака', 'утечка данных формы · чтение лишних полей · новый скрипт · ПДн за рубеж'],
+  ['Подмена скрипта', 'Знакомый app.js подменён: адрес тот же, содержимое другое', 1, 57, 'атака', 'скрипт изменён · утечка данных формы · ПДн за рубеж'],
+  ['Новый виджет', 'На сайте появился чат-виджет с чужого домена', .86, 40, 'атака', 'новый скрипт · незнакомый домен'],
+  ['Редирект', 'Через 1,5 с посетителя уводят на «казино»', .86, 1534, 'атака', 'внедрённый редирект · новый скрипт'],
+  ['Скрытый iframe', 'Невидимый фрейм с постороннего домена', 1, 36, 'атака', 'чужой iframe · новый скрипт · совокупность отклонений'],
+  ['Метрика читает телефон', 'Известный счётчик начал читать поле «телефон»', .97, 1050, 'атака', 'чтение лишнего поля · совокупность отклонений'],
+  ['Чтение cookie', 'Чужой скрипт читает cookie посетителя', .98, 43, 'атака', 'доступ к cookie · новый скрипт · незнакомый домен'],
+  ['Google Analytics', 'Владелец сам передаёт e-mail в Google Analytics', 1, 1059, '152-ФЗ', 'ПДн за рубеж · иностранный ресурс · утечка данных формы'],
+  ['Слабые сигналы', 'Несколько мелких отклонений — по отдельности безобидных', .97, 42, 'атака', 'новый скрипт · cookie · совокупность отклонений'],
+  ...[1, 2, 3, 4, 5].map(i => ['Обычное посещение ' + i, 'Посетитель заполнил заявку на чистом стенде', 0, null, 'норма', 'отличий от эталона нет']),
+  ['Законный виджет', 'Владелец добавил Яндекс Карты — это не атака', .51, null, 'изменение', 'новый скрипт · РФ, известный сервис · риск ниже порога']
+];
+let expSel = 0;
+const expF = Field(document.getElementById('expEyes'), (W, H) => {
+  const n = EXP.length, rows = W < 640 ? 2 : 1, per = Math.ceil(n / rows), out = [];
+  EXP.forEach((x, i) => { const row = Math.floor(i / per), col = i % per, cnt = row === rows - 1 ? n - per * (rows - 1) : per, step = W / per;
+    out.push({x: (W - cnt * step) / 2 + (col + .5) * step, y: rows === 1 ? H * .4 : H * (row ? .7 : .26), r: Math.min(step * .36, rows === 1 ? 28 : 20),
+      type: x[4] === '152-ФЗ' ? 'peacock' : i === 2 ? 'radar' : i === 4 ? 'aperture' : i === 6 ? 'slit' : 'classic', fixedMode: x[4] === 'норма' ? 'calm' : x[4] === 'изменение' ? 'warn' : 'alarm'}); });
+  return out;
+}, {after: (ctx, eyes) => {
+  ctx.font = '600 11px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
+  eyes.forEach((e, i) => { ctx.fillStyle = i === expSel ? '#ece9f7' : '#6f6a88'; ctx.fillText(String(i + 1), e.x, e.y + e.r * 1.25 + 12);
+    if (i === expSel) { ctx.strokeStyle = 'rgba(236,233,247,.85)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(e.x, e.y, e.r * 1.35, e.r * 1.0, 0, 0, TAU); ctx.stroke(); } });
+}});
+function expShow(i) {
+  expSel = i; const x = EXP[i], tone = x[4] === 'норма' ? 'ok' : x[4] === 'изменение' ? 'warn' : x[4] === '152-ФЗ' ? 'law' : 'bad';
+  const verdict = {ok: 'тихо — верно', warn: 'на подтверждение — верно', law: 'тревога 152-ФЗ — верно', bad: 'тревога — верно'}[tone];
+  document.getElementById('expCard').innerHTML = `<div class="no">${String(i + 1).padStart(2, '0')}</div><div><h3>${x[0]}</h3><p>${x[1]}</p><div class="found">${x[5]}</div></div><div class="right"><span class="badge ${tone}">${verdict}</span><span class="rk" style="color:${x[2] >= .6 ? 'var(--red)' : x[2] >= .35 ? 'var(--amber)' : 'var(--silver)'}">${x[2].toFixed(2).replace('.', ',')}</span><span class="ms">${x[3] == null ? 'риск посещения' : 'найдено за ' + (x[3] >= 1000 ? (x[3] / 1000).toFixed(1).replace('.', ',') + ' с' : x[3] + ' мс')}</span></div>`;
+  if (RM) expF.draw(performance.now());
+}
+document.getElementById('expEyes').addEventListener('click', ev => { const r = ev.currentTarget.getBoundingClientRect(), px = ev.clientX - r.left, py = ev.clientY - r.top; let best = 0, bd = 1e9; expF.eyes().forEach((e, i) => { const d = Math.hypot(e.x - px, e.y - py); if (d < bd) { bd = d; best = i; } }); expShow(best); });
+expShow(0);
+// три модели: глаз открыт — справилась, закрыт — нет
+const MODELS = [
+  ['Правила', 'Своя политика и справочник сервисов, эталона нет.', [9, 9], [7, 9], [6, 6], [3, 3], false],
+  ['Статистика', 'Только эталон: тревога на всё новое, юрисдикций не знает.', [9, 9], [8, 9], [5, 6], [0, 3], false],
+  ['Гибрид', 'Эталон + политика: новизна по эталону, вес и закон — по правилам.', [9, 9], [9, 9], [6, 6], [3, 3], true]
+];
+const MET = ['Заметила атаку', 'Поняла, как именно', 'Не подняла тревогу зря', 'Увидела нарушение 152-ФЗ'];
+document.getElementById('models').innerHTML = MODELS.map(m => `<div class="model ${m[6] ? 'best' : ''}"><h4>${m[0]}${m[6] ? '<span>это Argus</span>' : ''}</h4><p>${m[1]}</p>${MET.map((t, j) => { const [a, b] = m[2 + j]; return `<div class="metric"><small>${t}<b class="${a < b ? 'miss' : ''}">${a} из ${b}</b></small><div class="segs" role="img" aria-label="${a} из ${b}">${Array.from({length: b}, (_, k) => `<i${k < a ? '' : ' class="miss"'}></i>`).join('')}</div></div>`; }).join('')}</div>`).join('');
+
+/* ================= линза: значение остаётся, уходит только факт ================= */
+const LENS = [['телефон', '+7 900 123-45-67', 'app.js'], ['банковская карта', '2200 1234 5678 9010', 'app.js'], ['e-mail', 'ivan@example.ru', 'metrika/tag.js'], ['пароль', 'Sunny-2026!', 'app.js']];
+const lensEl = {l: document.getElementById('lensLabel'), v: document.getElementById('lensValue'), o: document.getElementById('lensOut')};
+// мы видим значение поля, Argus — только его категорию: переключатель показывает разницу
+const lensBox = document.querySelector('.lens');
+let lensMode = 'we'; lensBox.classList.add('we');
+document.getElementById('lensTg').addEventListener('click', ev => {
+  const b = ev.target.closest('button'); if (!b) return;
+  lensMode = b.dataset.v; lensBox.classList.toggle('we', lensMode === 'we'); lensBox.classList.toggle('argus', lensMode === 'argus');
+  [...ev.currentTarget.children].forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+  lensAim();
+});
+const lensF = Field(document.getElementById('lensEye'), (W, H) => [{x: W / 2, y: H / 2, r: Math.min(W * .3, H * .42), type: 'aperture'}]);
+let li = 0;
+function lensAim() { const r = (lensMode === 'argus' ? lensEl.l : lensEl.v).getBoundingClientRect(), c = document.getElementById('lensEye').getBoundingClientRect(); if (c.width) lensF.focus(r.left + r.width / 2 - c.left, r.top + r.height / 2 - c.top, 'calm'); }
+function lens() {
+  const [cat, val, scr] = LENS[li % LENS.length]; li++;
+  lensEl.l.textContent = cat; lensEl.v.textContent = val;
+  lensEl.o.innerHTML = `<span class="n">{</span>\n  <span class="k">событие</span>: <span class="v">"чтение поля"</span>,\n  <span class="k">скрипт</span>:  <span class="v">"${scr}"</span>,\n  <span class="k">поле</span>:    <span class="v">"${cat}"</span>,\n  <span class="k">значение</span>: <span class="n">— не передаётся</span>\n<span class="n">}</span>`;
+  lensAim();
+}
+lens(); if (!RM) setInterval(lens, 2800);
+addEventListener('resize', () => setTimeout(lensAim, 150));
+let lensQ = false;   // прицел пересчитываем раз в кадр, иначе прокрутка на телефоне дёргается
+addEventListener('scroll', () => { if (lensQ || !lensF.visible()) return; lensQ = true; requestAnimationFrame(() => { lensQ = false; lensAim(); }); }, {passive: true});
+
+/* ================= подвал: павлин раскрывает хвост ================= */
+// После гибели Аргуса Гера перенесла его глаза на хвост павлина — здесь это и происходит.
+// Подвал входит в поле зрения — хвост раскрывается веером, глаза на перьях открываются
+// от центра к краям и следят за курсором. Нажатие — по хвосту проходит мягкая волна.
+const pcStage = document.getElementById('peacockStage'), pcCv = document.getElementById('peacock'), foot = document.getElementById('footer');
+const PC = {p: RM ? 1 : 0, t0: 0, shake: 0, look: 0, O: {x: 0, y: 0}, R: 1, s: 1, half: 1.6, dur: 1500};
+const easeBack = p => { const c1 = 1.15, c3 = c1 + 1; return 1 + c3 * (p - 1) ** 3 + c1 * (p - 1) ** 2; };
+// перо целиком: глазок-капля, пушистые бородки вокруг и стержень с редкими бородками,
+// который тает к телу — так перья ложатся друг на друга, а не сходятся паутиной в центре
+const VANE = new Map();
+function vaneSprite(re) {
+  const k = Math.max(4, Math.round(re)); let cv = VANE.get(k); if (cv) return cv;
+  const top = k * 3.4, shaft = k * 7.5, w = k * 5.8, h = top + shaft;
+  cv = document.createElement('canvas'); cv.width = Math.ceil(w * DPR); cv.height = Math.ceil(h * DPR); cv.cw = w; cv.ch = h; cv.cy = top;
+  const x = cv.getContext('2d'); x.setTransform(DPR, 0, 0, DPR, w / 2 * DPR, top * DPR); x.lineCap = 'round';
+  const rnd = rng(k * 13 + 5), tones = ['63,182,168', '96,200,150', '196,160,92', '120,150,230'];
+  const sg = x.createLinearGradient(0, k * 1.5, 0, shaft);
+  sg.addColorStop(0, 'rgba(226,200,140,.5)'); sg.addColorStop(1, 'rgba(226,200,140,0)');
+  x.strokeStyle = sg; x.lineWidth = Math.max(.6, k * .07); x.beginPath(); x.moveTo(0, k * 1.5); x.lineTo(0, shaft); x.stroke();
+  for (let i = 0; i < 46; i++) {                                         // бородки вдоль стержня
+    const t = rnd(), y0 = k * 1.6 + t * (shaft - k * 1.6), sd = i % 2 ? -1 : 1, len = k * (1.7 - t * 1.1) * (.6 + rnd() * .6);
+    x.strokeStyle = 'rgba(' + tones[Math.floor(rnd() * 4)] + ',' + ((1 - t) * (.1 + rnd() * .2)).toFixed(3) + ')';
+    x.lineWidth = Math.max(.4, k * .035);
+    x.beginPath(); x.moveTo(0, y0); x.quadraticCurveTo(sd * len * .6, y0 - k * .2, sd * len, y0 - k * (.6 + rnd() * .6)); x.stroke();
+  }
+  for (let i = 0; i < 84; i++) {                                         // бородки вокруг глазка
+    const sd = i % 2 ? -1 : 1, y0 = -k * 2.5 + rnd() * k * 4.9, len = k * (1.1 + rnd() * 1.4);
+    x.strokeStyle = 'rgba(' + tones[Math.floor(rnd() * 4)] + ',' + (.12 + rnd() * .3).toFixed(2) + ')';
+    x.lineWidth = Math.max(.45, k * (.03 + rnd() * .03));
+    x.beginPath(); x.moveTo(0, y0); x.quadraticCurveTo(sd * len * .55, y0 - k * .1, sd * len, y0 - k * (.5 + rnd() * .5)); x.stroke();
+  }
+  const drop = (sc, c) => { x.fillStyle = c; x.beginPath(); x.moveTo(0, k * 1.95 * sc);
+    x.bezierCurveTo(k * 1.55 * sc, k * .9 * sc, k * 1.5 * sc, -k * 1.6 * sc, 0, -k * 1.62 * sc);
+    x.bezierCurveTo(-k * 1.5 * sc, -k * 1.6 * sc, -k * 1.55 * sc, k * .9 * sc, 0, k * 1.95 * sc); x.fill(); };
+  drop(1.14, 'rgba(176,132,60,.6)');
+  drop(1.02, 'rgba(46,160,126,.92)');
+  const hg = x.createRadialGradient(-k * .2, -k * .3, k * .1, 0, 0, k * 1.3);
+  hg.addColorStop(0, '#2350b8'); hg.addColorStop(1, '#0f2563');
+  drop(.89, hg);
+  x.strokeStyle = 'rgba(190,255,235,.35)'; x.lineWidth = Math.max(.5, k * .05);
+  x.beginPath(); x.arc(0, -k * .2, k * 1.18, Math.PI * 1.08, Math.PI * 1.6); x.stroke();
+  VANE.set(k, cv); return cv;
+}
+function drawPeacockBody(ctx, x, y, s, look) {
+  ctx.save();
+  for (const sd of [-1, 1]) {                                            // сложенные крылья: бурые, в полоску
+    const wx = x + sd * s * .2, wy = y + s * .04;
+    const g = ctx.createLinearGradient(wx, wy - s * .3, wx, wy + s * .3);
+    g.addColorStop(0, '#8a6a3c'); g.addColorStop(1, '#3a2a17');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(wx, wy, s * .13, s * .3, sd * .32, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(20,14,8,.45)'; ctx.lineWidth = Math.max(.6, s * .012);
+    for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.ellipse(wx, wy + k * s * .1, s * .11, s * .03, sd * .32, Math.PI * .1, Math.PI * .9); ctx.stroke(); }
+  }
+  let g = ctx.createRadialGradient(x - s * .07, y - s * .1, s * .03, x, y + s * .04, s * .36);
+  g.addColorStop(0, '#4b7bff'); g.addColorStop(.5, '#1f43b8'); g.addColorStop(1, '#0c1950');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(x, y + s * .04, s * .22, s * .3, 0, 0, TAU); ctx.fill();
+  const hx = x + look * s * .1, hy = y - s * .74;
+  g = ctx.createLinearGradient(x, y - s * .2, hx, hy); g.addColorStop(0, '#2149c4'); g.addColorStop(1, '#2fb4cc');
+  ctx.fillStyle = g; ctx.beginPath();
+  ctx.moveTo(x - s * .15, y - s * .12);
+  ctx.bezierCurveTo(x - s * .16, y - s * .4, hx - s * .1 + look * s * .02, hy + s * .2, hx - s * .065, hy + s * .03);
+  ctx.lineTo(hx + s * .065, hy + s * .03);
+  ctx.bezierCurveTo(hx + s * .1 + look * s * .02, hy + s * .2, x + s * .16, y - s * .4, x + s * .15, y - s * .12);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(160,220,255,.35)'; ctx.lineWidth = Math.max(.8, s * .018);  // блик на шее
+  ctx.beginPath(); ctx.moveTo(x - s * .06, y - s * .2); ctx.quadraticCurveTo(hx - s * .05, hy + s * .3, hx - s * .03, hy + s * .08); ctx.stroke();
+  ctx.strokeStyle = 'rgba(170,205,235,.85)'; ctx.lineWidth = Math.max(.7, s * .011);
+  for (let k = -2; k <= 2; k++) {                                        // хохолок
+    const a = k * .25 + look * .12, len = s * .19, bx = hx, by = hy - s * .08;
+    const tx = bx + Math.sin(a) * len, ty = by - Math.cos(a) * len;
+    ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(tx, ty); ctx.stroke();
+    ctx.fillStyle = '#2fb4cc'; ctx.beginPath(); ctx.arc(tx, ty, s * .024, 0, TAU); ctx.fill();
+  }
+  ctx.fillStyle = '#2459dc'; ctx.beginPath(); ctx.ellipse(hx, hy, s * .085, s * .1, 0, 0, TAU); ctx.fill();
+  for (const sx of [-1, 1]) {                                            // белые полоски и глаза
+    ctx.fillStyle = '#eef3ff'; ctx.beginPath(); ctx.ellipse(hx + sx * s * .046 + look * s * .02, hy - s * .008, s * .03, s * .014, sx * .4, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#0b0a10'; ctx.beginPath(); ctx.arc(hx + sx * s * .043 + look * s * .03, hy - s * .01, s * .012, 0, TAU); ctx.fill();
+  }
+  ctx.fillStyle = '#d6c08f'; ctx.beginPath();
+  ctx.moveTo(hx - s * .02 + look * s * .03, hy + s * .045); ctx.lineTo(hx + s * .02 + look * s * .03, hy + s * .045); ctx.lineTo(hx + look * s * .045, hy + s * .1);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+const pcF = Field(pcCv, (W, H) => {
+  const small = W < 640, R = Math.min(W * (small ? .48 : .46), H * .84), s = R * .3;
+  PC.R = R; PC.s = s; PC.O = {x: W / 2, y: H - s * .38};
+  const fr = [.42, .6, .78, .96], half = PC.half, sp = Math.max(R * .095, small ? 27 : 22);
+  const counts = fr.map(f => Math.max(5, Math.round(2 * half * f * R / sp)));
+  if (sp <= R * .095 + .01) counts[3] += 100 - counts.reduce((a, b) => a + b, 0);   // сто глаз — как у Аргуса
+  const out = [];
+  for (let k = fr.length - 1; k >= 0; k--) {                             // длинные перья сзади
+    const nk = counts[k], re = 2 * half * fr[k] * R / nk * .3, step = 2 * half / nk;
+    for (let j = 0; j < nk; j++) out.push({x: PC.O.x, y: PC.O.y, r: re, re, fr: fr[k], th: -half + (j + .5) * step, type: 'peacock', to: 0, ring: k});
+  }
+  return out;
+}, {
+  bg: (ctx, W, H) => {
+    const now = performance.now();
+    if (!RM && PC.t0) PC.p = Math.min(1, (now - PC.t0) / PC.dur);
+    const O = PC.O, R = PC.R, eyes = pcF.eyes();
+    // встряхивание: волна от центра к краям, нарастает и затухает плавно (≈2,5 колебания в секунду)
+    const ts = PC.shake ? (now - PC.shake) / 1700 : 2, env = ts < 1 ? Math.sin(Math.PI * ts) * (1 - ts) ** .8 : 0;
+    const spread = (RM ? 1 : easeBack(PC.p)) * (1 + env * .025 * Math.sin(now * .009));
+    const glow = ctx.createRadialGradient(O.x, O.y, 0, O.x, O.y, R * 1.08);
+    glow.addColorStop(0, 'rgba(63,182,168,' + (.16 * Math.max(.2, Math.min(1, spread))).toFixed(3) + ')'); glow.addColorStop(.6, 'rgba(124,92,255,.07)'); glow.addColorStop(1, 'rgba(124,92,255,0)');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(O.x, O.y, R * 1.08, 0, TAU); ctx.fill();
+    const sp1 = Math.min(1, spread);
+    ctx.lineCap = 'round'; ctx.lineWidth = Math.max(.5, R * .002);
+    ctx.strokeStyle = 'rgba(222,196,130,' + (.035 + .04 * sp1).toFixed(3) + ')';
+    ctx.beginPath();                                                     // тонкие стержни к телу, еле видны
+    eyes.forEach((e, i) => {
+      const sway = RM ? 0 : .011 * Math.sin(now * .0009 + i * .53), wave = env * .05 * Math.sin(now * .016 - Math.abs(e.th) * 2.6);
+      e._th = e.th * (.07 + .93 * spread) + sway + wave * e.fr;
+      e._rr = e.fr * R * (.5 + .5 * sp1);
+      const sn = Math.sin(e._th), cs = Math.cos(e._th);
+      e.x = O.x + sn * e._rr; e.y = O.y - cs * e._rr;
+      ctx.moveTo(O.x + sn * R * .12, O.y - cs * R * .12); ctx.lineTo(O.x + sn * (e._rr - e.re * 5), O.y - cs * (e._rr - e.re * 5));
+    });
+    ctx.stroke();
+    eyes.forEach(e => {
+      const vr = e.re * (.55 + .45 * sp1), v = vaneSprite(vr);
+      e.r = vr * .84; e.rot = e._th;                                     // глаз повёрнут вдоль пера и сидит в «сердце» глазка
+      const lag = Math.abs(e.th) / PC.half * .14;                        // открываются от центра к краям
+      e.to = clamp((PC.p - .7 - lag) / .12, 0, 1);
+      ctx.save(); ctx.globalAlpha = .3 + .7 * sp1;
+      ctx.translate(e.x, e.y); ctx.rotate(e._th); ctx.drawImage(v, -v.cw / 2, -v.cy, v.cw, v.ch); ctx.restore();
+    });
+    if (ctx.createConicGradient && spread > .95 && !RM) {                 // отлив пера бежит по хвосту
+      const a = (now * .00035) % TAU, cg = ctx.createConicGradient(a, O.x, O.y);
+      cg.addColorStop(0, 'rgba(140,255,225,0)'); cg.addColorStop(.035, 'rgba(140,255,225,.09)'); cg.addColorStop(.07, 'rgba(140,255,225,0)'); cg.addColorStop(1, 'rgba(140,255,225,0)');
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = cg;
+      ctx.beginPath(); ctx.arc(O.x, O.y, R * 1.06, 0, TAU); ctx.fill(); ctx.restore();
+    }
+    foot.classList.toggle('pc-open', PC.p >= 1);
+  },
+  after: (ctx, eyes, W, H, now) => {
+    const rc = pcCv.getBoundingClientRect();
+    const tgt = POINTER.t && now - POINTER.t < 4000 ? clamp((POINTER.x - rc.left - PC.O.x) / (W * .4), -1, 1) : Math.sin(now * .0006) * .5;
+    PC.look += (tgt - PC.look) * (RM ? 1 : .08);
+    drawPeacockBody(ctx, PC.O.x, PC.O.y, PC.s, PC.look);
+  }
+});
+if (matchMedia('(hover: none)').matches) document.getElementById('peacockHint').textContent = 'коснитесь — павлин встряхнёт хвостом';
+const pcOpen = () => { if (!RM && !PC.t0) PC.t0 = performance.now(); };
+new IntersectionObserver(es => es.forEach(en => {
+  if (RM) return;
+  if (en.isIntersecting) pcOpen();                                       // раскрыть, как только хвост показался
+  else if (en.boundingClientRect.top > innerHeight) { PC.t0 = 0; PC.p = 0; }   // ушли вверх — сложить, чтобы раскрылся снова
+}), {threshold: .2}).observe(pcStage);
+// запасной путь: если наблюдатель пересечений запоздает (бывает во встроенных браузерах) — раскрываем по прокрутке
+let pcQ = false;
+addEventListener('scroll', () => {
+  if (RM || PC.t0 || pcQ) return; pcQ = true;
+  requestAnimationFrame(() => { pcQ = false; const r = pcStage.getBoundingClientRect();
+    if (Math.min(r.bottom, innerHeight) - Math.max(r.top, 0) > r.height * .2) pcOpen(); });
+}, {passive: true});
+pcCv.addEventListener('click', () => {
+  const now = performance.now();
+  if (PC.p < 1) PC.t0 = now - PC.dur;
+  PC.shake = now;
+  pcF.eyes().forEach(e => { e.blinkAt = now + 140 + Math.abs(e.th) / PC.half * 520; });   // моргают волной вслед за перьями
+});
+
+/* ================= навигация справа: столбик глаз и нить прогресса ================= */
+// Открыт глаз того раздела, где вы сейчас; соседние приоткрыты, остальные спят.
+// Открытый глаз следит за курсором, а слева идёт нить: насколько страница пройдена.
+const dots = [...document.querySelectorAll('#dots a')], railCv = document.getElementById('railEyes');
+let railIdx = 0;
+const railF = Field(railCv, (W, H) => {
+  const c = railCv.getBoundingClientRect(); if (!c.height) return [];
+  return dots.map((a, i) => {
+    const b = a.getBoundingClientRect(), d = Math.abs(i - railIdx);
+    return {x: W - 24, y: b.top + b.height / 2 - c.top, r: d === 0 ? 10.5 : 7.5,
+      type: d === 0 ? 'peacock' : 'classic', to: d === 0 ? 1 : d === 1 ? .4 : 0};
+  });
+}, {after: (ctx, eyes, W) => {
+  if (eyes.length < 2) return;
+  const x = W - 48, y0 = eyes[0].y - 14, y1 = eyes[eyes.length - 1].y + 14;
+  const p = clamp(scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight), 0, 1);
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(220,214,255,.13)'; ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke();
+  ctx.strokeStyle = 'rgba(196,181,253,.8)'; ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y0 + (y1 - y0) * p); ctx.stroke();
+  ctx.fillStyle = '#ece9f7'; ctx.beginPath(); ctx.arc(x, y0 + (y1 - y0) * p, 2.6, 0, TAU); ctx.fill();
+  ctx.restore();
+}});
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const i = dots.findIndex(d => d.getAttribute('href') === '#' + e.target.id); if (i < 0 || i === railIdx) return;
+  railIdx = i; dots.forEach((d, k) => d.classList.toggle('on', k === i)); railF.relayout();
+}), {rootMargin: '-45% 0px -50% 0px'});
+dots.forEach(d => { const t = document.querySelector(d.getAttribute('href')); if (t) io.observe(t); });
+})();
+</script>
+
+<style>
+/* раздел «Кабинет»: превью списка сайтов */
+.cab-preview{max-width:860px;margin:0 auto;display:grid;gap:10px;padding:clamp(14px,2vw,22px);border-radius:24px;background:var(--carbon-2);border:1px solid var(--line2);box-shadow:0 40px 120px rgba(0,0,0,.45)}
+.cab-row{display:grid;grid-template-columns:44px minmax(0,1fr) 150px;grid-template-rows:auto auto;gap:10px 14px;align-items:center;padding:14px 16px;border-radius:16px;background:var(--glass);border:1px solid var(--line)}
+.cab-row.is-bad{border-color:color-mix(in srgb,var(--red) 40%,transparent);background:linear-gradient(180deg,rgba(255,45,70,.07),transparent 70%),var(--glass)}
+.cab-row svg{grid-row:1/3;width:44px;height:28px}
+.cab-row b{font:700 17px/1.2 var(--f-body);letter-spacing:-.01em;overflow-wrap:anywhere}
+.cab-row .risk{grid-column:2}
+.cab-row .badge{justify-self:end;gap:7px;padding:6px 11px;font:600 12px/1 var(--f-body);letter-spacing:0;text-transform:none}
+.cab-r{font:800 14px/1 var(--f-display);color:var(--st-t);font-variant-numeric:tabular-nums;text-align:right}
+@media (max-width:480px){.cab-row{grid-template-columns:32px minmax(0,1fr) auto}.cab-row svg{width:32px;height:20px}.cab-row .badge{font-size:11px;padding:5px 9px}}
+#cabinet .ctas{margin-top:26px}
+.shot-cap.cab-cap::before{content:none}
+</style>
+<!-- окно входа / подключения сайта -->
 <dialog class="modal" id="login" aria-labelledby="login-title">
   <div class="modal-body">
-    <div class="modal-head">
-      <h3 id="login-title">Личный кабинет</h3>
-      <button class="x" type="button" data-close aria-label="Закрыть">×</button>
-    </div>
+    <button class="lg-x" type="button" data-close aria-label="Закрыть">×</button>
+    <svg class="modal-eye" viewBox="0 0 64 40" aria-hidden="true"><path d="M3 20C12 7 22 3 32 3s20 4 29 17c-9 13-19 17-29 17S12 33 3 20Z" fill="#ece9f7"/><g id="loginIris"><circle cx="32" cy="20" r="11" fill="#8b5cf6"/><circle cx="32" cy="20" r="5" fill="#0b0a10"/><circle cx="35.5" cy="16.5" r="2" fill="#fff"/></g></svg>
+    <h3 id="login-title">Кабинет <em>владельца</em></h3>
+    <p class="modal-sub">Все ваши сайты и то, что на них изменилось.</p>
 
     <div class="tabs" role="tablist">
-      <button type="button" role="tab" aria-selected="true" aria-controls="form-signin" data-tab-btn="signin">Вход</button>
-      <button type="button" role="tab" aria-selected="false" aria-controls="form-signup" data-tab-btn="signup">Подключить сайт</button>
+      <button type="button" role="tab" id="tab-signin" aria-selected="true" aria-controls="form-signin" data-tab-btn="signin">Вход</button>
+      <button type="button" role="tab" id="tab-signup" aria-selected="false" aria-controls="form-signup" data-tab-btn="signup">Подключить сайт</button>
     </div>
 
-    <form id="form-signin" role="tabpanel" autocomplete="on">
-      <label class="field">E-mail
-        <input type="email" name="email" required placeholder="you@company.ru" autocomplete="email">
-      </label>
-      <label class="field">Пароль
-        <input type="password" name="password" required minlength="6" autocomplete="current-password">
-      </label>
-      <button class="btn btn-primary btn-block" type="submit">Войти</button>
+    <form id="form-signin" role="tabpanel" aria-labelledby="tab-signin">
+      <label class="lg-field">E-mail<input type="email" name="email" id="in-email" required placeholder="you@company.ru" autocomplete="email"></label>
+      <label class="lg-field">Пароль<input type="password" name="password" id="in-pass" required minlength="6" autocomplete="current-password"></label>
+      <button class="btn primary block" type="submit">Войти</button>
       <div class="or">или</div>
-      <button class="btn btn-block" type="button" data-demo>Войти через Telegram</button>
+      <button class="btn block" type="button" data-demo>Войти через Telegram</button>
     </form>
 
-    <form id="form-signup" role="tabpanel" hidden>
-      <label class="field">Адрес сайта
-        <input type="text" name="site" required placeholder="example.ru" inputmode="url">
-      </label>
-      <label class="field">E-mail
-        <input type="email" name="email" required placeholder="you@company.ru" autocomplete="email">
-      </label>
-      <label class="field">Пароль
-        <input type="password" name="password" required minlength="6" autocomplete="new-password">
-      </label>
-      <label class="check">
-        <input type="checkbox" required>
-        <span>Согласен на обработку персональных данных для работы кабинета</span>
-      </label>
-      <button class="btn btn-primary btn-block" type="submit">Создать кабинет</button>
+    <form id="form-signup" role="tabpanel" aria-labelledby="tab-signup" hidden>
+      <label class="lg-field">Адрес сайта<input type="text" name="site" id="up-site" required placeholder="example.ru" inputmode="url" autocomplete="off"></label>
+      <label class="lg-field">E-mail<input type="email" name="email" id="up-email" required placeholder="you@company.ru" autocomplete="email"></label>
+      <label class="lg-field">Пароль<input type="password" name="password" id="up-pass" required minlength="6" autocomplete="new-password"></label>
+      <label class="check"><input type="checkbox" id="up-consent" required><span>Согласен на обработку персональных данных для работы кабинета</span></label>
+      <button class="btn primary block" type="submit">Создать кабинет</button>
     </form>
 
-    <p class="note">Прототип: данные никуда не отправляются, вход открывает демо-кабинет.</p>
+    <p class="note">прототип · данные никуда не отправляются, вход открывает демо-кабинет</p>
   </div>
 </dialog>
 
 <script>
-  (function () {
-    var dlg = document.getElementById('login');
-    var forms = { signin: document.getElementById('form-signin'), signup: document.getElementById('form-signup') };
-
-    function setTab(name) {
-      document.querySelectorAll('[data-tab-btn]').forEach(function (b) {
-        b.setAttribute('aria-selected', String(b.dataset.tabBtn === name));
-      });
-      Object.keys(forms).forEach(function (k) { forms[k].hidden = k !== name; });
-    }
-
-    function enter(email) {
-      try { sessionStorage.setItem('argus-user', email || 'demo@argus'); } catch (e) {}
-      location.href = 'cabinet.html';
-    }
-
-    document.querySelectorAll('[data-open-login]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        setTab(b.dataset.tab || 'signin');
-        dlg.showModal();
-      });
-    });
-    document.querySelectorAll('[data-tab-btn]').forEach(function (b) {
-      b.addEventListener('click', function () { setTab(b.dataset.tabBtn); });
-    });
-    dlg.querySelector('[data-close]').addEventListener('click', function () { dlg.close(); });
-    dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
-    dlg.querySelector('[data-demo]').addEventListener('click', function () { enter(); });
-
-    Object.keys(forms).forEach(function (k) {
-      forms[k].addEventListener('submit', function (e) {
-        e.preventDefault();
-        enter(forms[k].elements.email.value);
-      });
-    });
-  })();
+(() => {
+  const dlg = document.getElementById('login');
+  const forms = {signin: document.getElementById('form-signin'), signup: document.getElementById('form-signup')};
+  const iris = document.getElementById('loginIris');
+  const setTab = name => {
+    document.querySelectorAll('[data-tab-btn]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tabBtn === name)));
+    for (const k in forms) forms[k].hidden = k !== name;
+  };
+  const enter = email => {
+    try { sessionStorage.setItem('argus-user', email || 'demo@argus'); } catch (e) {}
+    location.href = 'cabinet.html';
+  };
+  document.querySelectorAll('[data-open-login]').forEach(b => b.addEventListener('click', () => { setTab(b.dataset.tab || 'signin'); dlg.showModal(); }));
+  document.querySelectorAll('[data-tab-btn]').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tabBtn)));
+  dlg.querySelector('[data-close]').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  dlg.querySelector('[data-demo]').addEventListener('click', () => enter());
+  for (const k in forms) forms[k].addEventListener('submit', e => { e.preventDefault(); enter(forms[k].elements.email.value); });
+  // глаз в окне следит за курсором
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) dlg.addEventListener('pointermove', e => {
+    const r = iris.ownerSVGElement.getBoundingClientRect();
+    const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2), d = Math.hypot(dx, dy) || 1;
+    const k = Math.min(1, d / 160);
+    iris.setAttribute('transform', `translate(${(dx / d * 9 * k).toFixed(1)} ${(dy / d * 4 * k).toFixed(1)})`);
+  });
+})();
 </script>
 </body>
 </html>
