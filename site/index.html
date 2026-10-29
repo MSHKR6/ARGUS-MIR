@@ -1,0 +1,377 @@
+<!--
+                   __    __        _____
+   ____ ___  _____/ /_  / /_______/ ___/
+  / __ `__ \/ ___/ __ \/ //_/ ___/ __ \
+ / / / / / (__  ) / / / ,< / /  / /_/ /
+/_/ /_/ /_/____/_/ /_/_/|_/_/   \____/
+
+ file:    site/index.html
+ author:  mshkr6
+ created: 2026-10-29
+ about:   Страница продукта Argus: что это, какую проблему решает, как работает,
+          что внутри личного кабинета, результаты эксперимента. Кнопка «Личный кабинет»
+          открывает окно входа / подключения сайта (прототип — ведёт в демо-кабинет).
+-->
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Argus — контроль сайта</title>
+  <meta name="description" content="Argus — поведенческий контроль безопасности сайта на стороне клиента: видит, что скрипты делают в браузере посетителя, и ловит утечки и нарушения 152-ФЗ.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/argus.css">
+  <style>
+    .hero { padding: 72px 0 80px; border-top: 0; }
+    .hero .wrap { display: grid; gap: 48px; align-items: center; }
+    @media (min-width: 960px) { .hero .wrap { grid-template-columns: 1.1fr .9fr; } }
+    .hero h1 { margin-top: 18px; }
+    .hero h1 em { font-style: normal; color: var(--em); }
+    .hero .lead { margin: 20px 0 32px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+    /* превью панели в hero */
+    .preview { padding: 0; overflow: hidden; }
+    .preview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+    .preview-head b { font-weight: 500; }
+    .preview-body { padding: 20px; display: grid; gap: 16px; }
+    .risk-row { display: flex; align-items: baseline; justify-content: space-between; font-size: 14px; color: var(--muted); }
+    .risk-row strong { font: 600 28px/1 var(--font); color: var(--crit); }
+    .chain { display: grid; gap: 8px; font: 13px/1.4 var(--mono); }
+    .chain div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--bg); }
+    .chain span { color: var(--dim); }
+    .chain .bad { color: var(--crit); }
+    .chain .law { color: var(--law); }
+    .preview-foot { display: flex; flex-wrap: wrap; gap: 8px; }
+    .preview-foot .btn { height: 34px; font-size: 13px; padding: 0 12px; }
+
+    /* шаги */
+    .step h3 { margin-top: 14px; }
+    .step code { font-size: 12px; color: var(--em); }
+
+    /* две трактовки */
+    .two { display: grid; gap: 16px; margin-top: 36px; }
+    @media (min-width: 720px) { .two { grid-template-columns: 1fr 1fr; } }
+    .two .card { border-top: 3px solid var(--st); }
+    .two ul { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 15px; }
+    .two li { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); }
+    .two li code { color: var(--dim); font-size: 13px; }
+
+    /* кабинет */
+    .cab { display: grid; gap: 40px; align-items: start; margin-top: 36px; }
+    @media (min-width: 900px) { .cab { grid-template-columns: 1fr 1fr; } }
+    .cab ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 18px; counter-reset: c; }
+    .cab li { position: relative; padding-left: 44px; color: var(--muted); }
+    .cab li b { display: block; color: var(--text); font-weight: 500; }
+    .cab li::before {
+      counter-increment: c; content: counter(c);
+      position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%;
+      display: grid; place-items: center; font: 500 13px/1 var(--mono);
+      border: 1px solid var(--line); color: var(--em);
+    }
+    .mini { display: grid; gap: 10px; }
+    .mini .card { display: grid; grid-template-columns: 1fr auto; gap: 10px 16px; align-items: center; padding: 16px 18px; border-left: 3px solid var(--st); }
+    .mini .risk { grid-column: 1 / -1; }
+    .mini b { font-weight: 500; }
+
+    /* цифры */
+    .stats .card strong { display: block; font-size: 40px; font-weight: 600; line-height: 1; }
+    .stats .card p { margin-top: 10px; }
+
+    /* данные */
+    .data { display: grid; gap: 16px; margin-top: 36px; }
+    @media (min-width: 720px) { .data { grid-template-columns: 1fr 1fr; } }
+    .data pre { margin: 12px 0 0; padding: 14px; border-radius: 10px; background: var(--bg); font-size: 13px; color: var(--muted); white-space: pre-wrap; word-break: break-word; }
+    .data .hl { color: var(--em); }
+    .data .no { color: var(--dim); text-decoration: line-through; }
+
+    .final { text-align: center; }
+    .final .lead { margin: 16px auto 28px; }
+    .final .actions { justify-content: center; }
+  </style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#" aria-label="Argus — на главную">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M2 16C6 9 11 6 16 6s10 3 14 10c-4 7-9 10-14 10S6 23 2 16Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="5.5" fill="#8b5cf6"/><circle cx="16" cy="16" r="2.2" fill="#0b0a10"/></svg>
+      ARGUS
+    </a>
+    <nav class="nav" aria-label="Разделы">
+      <a href="#problem">Проблема</a>
+      <a href="#how">Как работает</a>
+      <a href="#cabinet">Кабинет</a>
+      <a href="#results">Эксперимент</a>
+    </nav>
+    <button class="btn btn-primary" type="button" data-open-login>Личный кабинет</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <span class="eyebrow">Безопасность сайта · 152-ФЗ</span>
+        <h1>Видит, что скрипты <em>делают</em> на&nbsp;вашем сайте</h1>
+        <p class="lead">Argus ставится одной строкой, запоминает нормальное поведение страниц и сразу сообщает, когда чужой код читает форму, подменяет скрипт или отправляет персональные данные за рубеж.</p>
+        <div class="actions">
+          <button class="btn btn-primary" type="button" data-open-login>Открыть кабинет</button>
+          <a class="btn btn-ghost" href="#how">Как это работает</a>
+        </div>
+      </div>
+
+      <div class="card preview" aria-label="Пример тревоги в кабинете">
+        <div class="preview-head">
+          <b>uyut-remont.ru</b>
+          <span class="badge is-bad">Нужны действия</span>
+        </div>
+        <div class="preview-body">
+          <div class="risk-row"><span>Риск посещения</span><strong>1,00</strong></div>
+          <div class="risk is-bad"><i style="width:100%"></i></div>
+          <div class="chain">
+            <div><span>скрипт</span> cdn-stat.example/s.js <span>→</span> <span class="bad">новый</span></div>
+            <div><span>читает</span> телефон, карта <span>→</span> <span class="bad">не по эталону</span></div>
+            <div><span>отправляет</span> cdn-stat.example <span>→</span> <span class="law">вне РФ · 152-ФЗ</span></div>
+          </div>
+          <div class="preview-foot">
+            <span class="btn">Это мы — принять</span>
+            <span class="btn">Это атака</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="problem">
+    <div class="wrap">
+      <span class="eyebrow">Проблема</span>
+      <h2>Сервер не видит, что происходит в браузере</h2>
+      <p class="lead">WAF и антибот защищают вход на сайт. Но скрипт, который уже загрузился на страницу, может прочитать поле «телефон» и отправить его куда угодно — и сервер об этом не узнает.</p>
+      <div class="grid grid-3">
+        <div class="card">
+          <h3>Скиммеры</h3>
+          <p>Чужой код встраивается в форму оплаты и копирует номер карты (атаки класса Magecart).</p>
+        </div>
+        <div class="card">
+          <h3>Подмена кода</h3>
+          <p>Взломанный плагин или CDN: адрес скрипта прежний, а содержимое уже другое.</p>
+        </div>
+        <div class="card">
+          <h3>ПДн за рубежом</h3>
+          <p>С 1 июля 2025 г. первичный сбор ПДн — только в РФ. Счётчик, отправляющий e-mail в иностранный сервис, — штраф до 6 млн ₽.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <span class="eyebrow">Как работает</span>
+      <h2>Четыре шага — от строки кода до решения</h2>
+      <div class="grid grid-4">
+        <div class="card step">
+          <span class="num">01</span>
+          <h3>Датчик</h3>
+          <p>Одна строка в <code>&lt;head&gt;</code>. Записывает, какие скрипты загрузились, что они читают и куда отправляют.</p>
+        </div>
+        <div class="card step">
+          <span class="num">02</span>
+          <h3>Эталон</h3>
+          <p>В режиме обучения Argus запоминает норму: скрипты с хешами, получателей, кто какие поля читает.</p>
+        </div>
+        <div class="card step">
+          <span class="num">03</span>
+          <h3>Наблюдение</h3>
+          <p>Каждое отклонение получает вес, вместе — риск посещения <code>R = 1 − ∏(1 − rᵢ)</code>. Порог тревоги — 0,6.</p>
+        </div>
+        <div class="card step">
+          <span class="num">04</span>
+          <h3>Решение</h3>
+          <p>Тревога приходит в Telegram. Владелец решает: «это мы» — в эталон, «это атака» — в инциденты.</p>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="card is-bad">
+          <h3>Как вторжение</h3>
+          <ul>
+            <li>Утечка данных <code>0,90</code></li>
+            <li>Скрипт изменён <code>0,85</code></li>
+            <li>Внедрённый редирект <code>0,70</code></li>
+            <li>Чтение лишних полей <code>0,60</code></li>
+            <li>Новый скрипт <code>0,55</code></li>
+          </ul>
+        </div>
+        <div class="card is-law">
+          <h3>Как нарушение 152-ФЗ</h3>
+          <ul>
+            <li>ПДн уходят за рубеж <code>0,85</code></li>
+            <li>Передача в «адекватную» страну <code>0,45</code></li>
+            <li>Иностранный ресурс на странице <code>0,20</code></li>
+          </ul>
+          <p>Одно и то же отклонение Argus трактует сразу двумя способами — по фактическим, а не заявленным потокам данных.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cabinet">
+    <div class="wrap">
+      <span class="eyebrow">Личный кабинет</span>
+      <h2>Зашли — и сразу видно, что плохо, а что хорошо</h2>
+      <div class="cab">
+        <ol>
+          <li><b>Все ваши сайты на одном экране</b>Каждый с цветом статуса и шкалой риска: красный — угроза, жёлтый — проверьте, фиолетовый — 152-ФЗ.</li>
+          <li><b>Подключение за минуту</b>Добавили домен — получили строку кода датчика и запустили обучение.</li>
+          <li><b>Изменения «было / стало»</b>Новый скрипт, другой хеш, новый получатель — с цепочкой «скрипт → действие → получатель».</li>
+          <li><b>Решение в один клик</b>Принять в эталон, отметить как атаку или скрыть. Правовые находки не принимаются в эталон — только «оформлено».</li>
+          <li><b>Тревоги в Telegram</b>Одно сообщение на одно изменение, без персональных данных в тексте.</li>
+        </ol>
+        <div class="mini" aria-label="Пример списка сайтов">
+          <div class="card is-bad"><b>uyut-remont.ru</b><span class="badge is-bad">Нужны действия</span><div class="risk"><i style="width:100%"></i></div></div>
+          <div class="card is-law"><b>clinic-dent.ru</b><span class="badge is-law">152-ФЗ</span><div class="risk"><i style="width:85%"></i></div></div>
+          <div class="card is-warn"><b>flowers-don.ru</b><span class="badge is-warn">Проверьте</span><div class="risk"><i style="width:51%"></i></div></div>
+          <div class="card is-ok"><b>mshkr6.ru</b><span class="badge is-ok">Всё хорошо ✓</span><div class="risk"><i style="width:4%"></i></div></div>
+          <button class="btn btn-primary btn-block" type="button" data-open-login>Войти в кабинет</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="results">
+    <div class="wrap">
+      <span class="eyebrow">Эксперимент на стенде</span>
+      <h2>Проверено на девяти атаках</h2>
+      <p class="lead">Тестовый сайт с формой заявки: 15 обучающих сессий, 5 контрольных, 9 сценариев атак и один легитимный виджет.</p>
+      <div class="grid grid-3 stats">
+        <div class="card"><strong>9 / 9</strong><p>атак обнаружено, механизм установлен во всех</p></div>
+        <div class="card"><strong>0</strong><p>ложных тревог на нормальных посещениях</p></div>
+        <div class="card"><strong>36–62 мс</strong><p>до находки в большинстве сценариев</p></div>
+      </div>
+
+      <div class="data">
+        <div class="card">
+          <h3>Что получает Argus</h3>
+          <pre>{ script: "cdn-stat.example/s.js",
+  action: "read_form_field",
+  data_type: <span class="hl">"phone"</span>,
+  destination: "cdn-stat.example" }</pre>
+          <p>Только категорию поля — «телефон», «карта», «e-mail».</p>
+        </div>
+        <div class="card">
+          <h3>Что не уходит никогда</h3>
+          <pre><span class="no">+7 928 000-00-00</span>
+<span class="no">4276 •••• •••• 1234</span>
+<span class="no">ivan@example.ru</span></pre>
+          <p>Значения остаются в браузере посетителя. Уходит факт, а не данные.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <h2>Изменения случаются. Пусть будут видны.</h2>
+      <p class="lead">Подключите сайт и посмотрите, что на нём происходит у посетителей.</p>
+      <div class="actions">
+        <button class="btn btn-primary" type="button" data-open-login data-tab="signup">Подключить сайт</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    Argus — дипломный проект, ДГТУ · <a href="https://mshkr6.ru">mshkr6.ru</a> · <a href="https://t.me/mshkr6">@mshkr6</a>
+  </div>
+</footer>
+
+<!-- окно входа / подключения -->
+<dialog class="modal" id="login" aria-labelledby="login-title">
+  <div class="modal-body">
+    <div class="modal-head">
+      <h3 id="login-title">Личный кабинет</h3>
+      <button class="x" type="button" data-close aria-label="Закрыть">×</button>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" aria-selected="true" aria-controls="form-signin" data-tab-btn="signin">Вход</button>
+      <button type="button" role="tab" aria-selected="false" aria-controls="form-signup" data-tab-btn="signup">Подключить сайт</button>
+    </div>
+
+    <form id="form-signin" role="tabpanel" autocomplete="on">
+      <label class="field">E-mail
+        <input type="email" name="email" required placeholder="you@company.ru" autocomplete="email">
+      </label>
+      <label class="field">Пароль
+        <input type="password" name="password" required minlength="6" autocomplete="current-password">
+      </label>
+      <button class="btn btn-primary btn-block" type="submit">Войти</button>
+      <div class="or">или</div>
+      <button class="btn btn-block" type="button" data-demo>Войти через Telegram</button>
+    </form>
+
+    <form id="form-signup" role="tabpanel" hidden>
+      <label class="field">Адрес сайта
+        <input type="text" name="site" required placeholder="example.ru" inputmode="url">
+      </label>
+      <label class="field">E-mail
+        <input type="email" name="email" required placeholder="you@company.ru" autocomplete="email">
+      </label>
+      <label class="field">Пароль
+        <input type="password" name="password" required minlength="6" autocomplete="new-password">
+      </label>
+      <label class="check">
+        <input type="checkbox" required>
+        <span>Согласен на обработку персональных данных для работы кабинета</span>
+      </label>
+      <button class="btn btn-primary btn-block" type="submit">Создать кабинет</button>
+    </form>
+
+    <p class="note">Прототип: данные никуда не отправляются, вход открывает демо-кабинет.</p>
+  </div>
+</dialog>
+
+<script>
+  (function () {
+    var dlg = document.getElementById('login');
+    var forms = { signin: document.getElementById('form-signin'), signup: document.getElementById('form-signup') };
+
+    function setTab(name) {
+      document.querySelectorAll('[data-tab-btn]').forEach(function (b) {
+        b.setAttribute('aria-selected', String(b.dataset.tabBtn === name));
+      });
+      Object.keys(forms).forEach(function (k) { forms[k].hidden = k !== name; });
+    }
+
+    function enter(email) {
+      try { sessionStorage.setItem('argus-user', email || 'demo@argus'); } catch (e) {}
+      location.href = 'cabinet.html';
+    }
+
+    document.querySelectorAll('[data-open-login]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        setTab(b.dataset.tab || 'signin');
+        dlg.showModal();
+      });
+    });
+    document.querySelectorAll('[data-tab-btn]').forEach(function (b) {
+      b.addEventListener('click', function () { setTab(b.dataset.tabBtn); });
+    });
+    dlg.querySelector('[data-close]').addEventListener('click', function () { dlg.close(); });
+    dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+    dlg.querySelector('[data-demo]').addEventListener('click', function () { enter(); });
+
+    Object.keys(forms).forEach(function (k) {
+      forms[k].addEventListener('submit', function (e) {
+        e.preventDefault();
+        enter(forms[k].elements.email.value);
+      });
+    });
+  })();
+</script>
+</body>
+</html>

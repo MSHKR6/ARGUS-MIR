@@ -1,0 +1,254 @@
+<!--
+                   __    __        _____
+   ____ ___  _____/ /_  / /_______/ ___/
+  / __ `__ \/ ___/ __ \/ //_/ ___/ __ \
+ / / / / / (__  ) / / / ,< / /  / /_/ /
+/_/ /_/ /_/____/_/ /_/_/|_/_/   \____/
+
+ file:    site/cabinet.html
+ author:  mshkr6
+ created: 2026-10-29
+ about:   Прототип личного кабинета Argus: сводка, список сайтов владельца со статусом
+          и риском, находка «скрипт → действие → получатель» с решением владельца,
+          окно «Добавить сайт» (код датчика + путь обучение → проверка эталона → наблюдение).
+          Данные демонстрационные, хранятся только в странице.
+-->
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Argus — кабинет</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/argus.css">
+  <style>
+    .user { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); min-width: 0; }
+    .user span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .user .btn { margin: 0; height: 36px; font-size: 14px; }
+    @media (max-width: 560px) { .user span { display: none; } }
+
+    main { padding: 32px 0 64px; }
+    .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+    .bar h1 { font-size: 28px; }
+
+    .sum { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 24px 0 32px; }
+    @media (min-width: 720px) { .sum { grid-template-columns: repeat(4, 1fr); } }
+    .sum .card { padding: 16px 18px; border-left: 3px solid var(--st, var(--line)); }
+    .sum strong { display: block; font-size: 30px; font-weight: 600; line-height: 1.1; }
+    .sum span { font-size: 14px; color: var(--muted); }
+
+    .sites { display: grid; gap: 12px; }
+    .site { border-left: 3px solid var(--st); padding: 20px; }
+    .site-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+    .site-top h3 { font-size: 18px; margin-right: auto; }
+    .mode { font: 500 12px/1 var(--mono); color: var(--dim); text-transform: uppercase; letter-spacing: .06em; }
+    .site-risk { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; margin-top: 14px; font-size: 14px; color: var(--muted); }
+    .site-risk b { font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+    .site .what { margin: 12px 0 0; font-size: 15px; color: var(--muted); }
+    .chain { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 10px; background: var(--bg); font: 13px/1.4 var(--mono); }
+    .chain span { color: var(--dim); }
+    .chain .bad { color: var(--crit); }
+    .chain .law { color: var(--law); }
+    .chain .warn { color: var(--med); }
+    .decide { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .decide .btn { height: 36px; font-size: 14px; padding: 0 14px; }
+    .learn { margin-top: 14px; }
+    .learn .risk::after { display: none; }
+    .learn .risk > i { background: var(--em); }
+    .learn p { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+
+    /* окно «Добавить сайт» */
+    dialog.modal { width: min(520px, calc(100% - 32px)); }
+    .steps { margin: 18px 0 0; padding: 0; list-style: none; display: grid; gap: 14px; counter-reset: s; }
+    .steps li { position: relative; padding-left: 38px; font-size: 14px; color: var(--muted); }
+    .steps li b { display: block; color: var(--text); font-weight: 500; font-size: 15px; }
+    .steps li::before {
+      counter-increment: s; content: counter(s);
+      position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%;
+      display: grid; place-items: center; font: 500 12px/1 var(--mono); border: 1px solid var(--line); color: var(--em);
+    }
+    .snippet { position: relative; margin-top: 8px; }
+    .snippet pre { margin: 0; padding: 12px 14px; padding-right: 92px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); font-size: 12px; color: var(--em); white-space: pre-wrap; word-break: break-all; }
+    .snippet .btn { position: absolute; top: 8px; right: 8px; height: 30px; font-size: 13px; padding: 0 10px; }
+  </style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="index.html" aria-label="Argus — на главную">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M2 16C6 9 11 6 16 6s10 3 14 10c-4 7-9 10-14 10S6 23 2 16Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="5.5" fill="#8b5cf6"/><circle cx="16" cy="16" r="2.2" fill="#0b0a10"/></svg>
+      ARGUS
+    </a>
+    <div class="user">
+      <span id="user-email">demo@argus</span>
+      <a class="btn btn-ghost" href="index.html">Выйти</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="bar">
+      <h1>Мои сайты</h1>
+      <button class="btn btn-primary" type="button" id="add-open">+ Добавить сайт</button>
+    </div>
+
+    <div class="sum" id="sum"></div>
+    <div class="sites" id="sites"></div>
+  </div>
+</main>
+
+<dialog class="modal" id="add" aria-labelledby="add-title">
+  <div class="modal-body">
+    <div class="modal-head">
+      <h3 id="add-title">Добавить сайт</h3>
+      <button class="x" type="button" data-close aria-label="Закрыть">×</button>
+    </div>
+    <form id="add-form">
+      <label class="field" style="margin-top:20px">Адрес сайта
+        <input type="text" name="host" required placeholder="example.ru" inputmode="url">
+      </label>
+      <ol class="steps">
+        <li><b>Вставьте датчик в &lt;head&gt;</b>
+          <div class="snippet"><pre id="code"></pre><button class="btn" type="button" id="copy">Копировать</button></div>
+        </li>
+        <li><b>Обучение</b>Argus запоминает, как сайт ведёт себя в норме. Не меняйте сайт, пока идёт обучение.</li>
+        <li><b>Проверка эталона</b>Вы просматриваете найденные скрипты и получателей и подтверждаете: «это всё наше».</li>
+        <li><b>Наблюдение</b>Любое отклонение от эталона — находка в кабинете и тревога в Telegram.</li>
+      </ol>
+      <button class="btn btn-primary btn-block" type="submit" style="margin-top:22px">Начать обучение</button>
+    </form>
+  </div>
+</dialog>
+
+<script>
+  (function () {
+    var LEARN_TARGET = 50;
+    var STATUS = {
+      bad:   { cls: 'is-bad',  label: 'Нужны действия' },
+      law:   { cls: 'is-law',  label: '152-ФЗ' },
+      warn:  { cls: 'is-warn', label: 'Проверьте' },
+      incident: { cls: 'is-bad', label: 'Инцидент' },
+      ok:    { cls: 'is-ok',   label: 'Всё хорошо ✓' },
+      learn: { cls: 'is-ok',   label: 'Обучение' }
+    };
+
+    // демо-данные; в продукте — GET /api/sites и /api/sites/:id/summary
+    var sites = [
+      { host: 'uyut-remont.ru', status: 'bad', risk: 1.00, mode: 'Наблюдение',
+        what: 'Новый скрипт читает телефон и карту и отправляет их на чужой сервер.',
+        chain: [['скрипт', 'cdn-stat.example/s.js', 'bad', 'новый'], ['читает', 'phone, card', 'bad', 'не по эталону'], ['→', 'cdn-stat.example', 'law', 'вне РФ']] },
+      { host: 'clinic-dent.ru', status: 'law', risk: 0.85, mode: 'Наблюдение',
+        what: 'E-mail из формы записи уходит в Google Analytics (США). Это не взлом, а нарушение локализации ПДн.',
+        chain: [['скрипт', 'googletagmanager.com/gtag.js', '', ''], ['читает', 'email', 'law', ''], ['→', 'google-analytics.com', 'law', 'США']] },
+      { host: 'flowers-don.ru', status: 'warn', risk: 0.51, mode: 'Наблюдение',
+        what: 'Появился виджет Яндекс Карт. Ниже порога тревоги — подтвердите, что это вы.',
+        chain: [['скрипт', 'api-maps.yandex.ru', 'warn', 'новый'], ['→', 'yandex.ru', '', 'RU']] },
+      { host: 'mshkr6.ru', status: 'ok', risk: 0.04, mode: 'Наблюдение',
+        what: 'Эталон: 6 скриптов, 3 получателя. Отклонений за неделю нет.' },
+      { host: 'shop-new.ru', status: 'learn', risk: 0, mode: 'Обучение', learned: 34 }
+    ];
+
+    var $ = function (id) { return document.getElementById(id); };
+    var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); };
+    var fmt = function (n) { return n.toFixed(2).replace('.', ','); };
+
+    try { var u = sessionStorage.getItem('argus-user'); if (u) $('user-email').textContent = u; } catch (e) {}
+
+    function renderSum() {
+      var c = { bad: 0, law: 0, warn: 0, ok: 0 };
+      sites.forEach(function (s) { var k = s.status === 'incident' ? 'bad' : s.status; if (k in c) c[k]++; });
+      $('sum').innerHTML =
+        '<div class="card"><strong>' + sites.length + '</strong><span>сайтов</span></div>' +
+        '<div class="card is-bad"><strong>' + c.bad + '</strong><span>нужны действия</span></div>' +
+        '<div class="card is-law"><strong>' + c.law + '</strong><span>152-ФЗ</span></div>' +
+        '<div class="card is-ok"><strong>' + c.ok + '</strong><span>всё хорошо</span></div>';
+    }
+
+    function renderSite(s, i) {
+      var st = STATUS[s.status];
+      var h = '<article class="card site ' + st.cls + '">' +
+        '<div class="site-top"><h3>' + esc(s.host) + '</h3>' + (s.status === 'learn' ? '' : '<span class="mode">' + s.mode + '</span>') +
+        '<span class="badge ' + st.cls + '">' + st.label + '</span></div>';
+
+      if (s.status === 'learn') {
+        var p = Math.min(100, Math.round(s.learned / LEARN_TARGET * 100));
+        return h + '<div class="learn"><div class="risk"><i style="width:' + p + '%"></i></div>' +
+          '<p>Собрано ' + s.learned + ' из ' + LEARN_TARGET + ' посещений. После обучения проверьте эталон.</p></div></article>';
+      }
+
+      h += '<div class="site-risk"><div class="risk"><i style="width:' + Math.max(2, s.risk * 100) + '%"></i></div>' +
+        '<span>риск <b>' + fmt(s.risk) + '</b></span></div>';
+      if (s.what) h += '<p class="what">' + esc(s.what) + '</p>';
+      if (s.chain) {
+        h += '<div class="chain">' + s.chain.map(function (c) {
+          return '<span>' + c[0] + '</span> ' + esc(c[1]) + (c[3] ? ' <span class="' + c[2] + '">' + c[3] + '</span>' : '');
+        }).join(' ') + '</div>';
+      }
+      if (s.status === 'bad' || s.status === 'warn') {
+        h += '<div class="decide">' +
+          '<button class="btn" type="button" data-act="accept" data-i="' + i + '">Это мы — принять в эталон</button>' +
+          '<button class="btn" type="button" data-act="incident" data-i="' + i + '">Это атака — инцидент</button>' +
+          '<button class="btn btn-ghost" type="button" data-act="hide" data-i="' + i + '">Скрыть</button></div>';
+      } else if (s.status === 'law') {
+        // правовые находки в эталон не принимаются — только «оформлено»
+        h += '<div class="decide"><button class="btn" type="button" data-act="done" data-i="' + i + '">Оформлено</button></div>';
+      }
+      return h + '</article>';
+    }
+
+    function render() {
+      renderSum();
+      $('sites').innerHTML = sites.map(renderSite).join('');
+    }
+
+    $('sites').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-act]');
+      if (!b) return;
+      var s = sites[+b.dataset.i];
+      if (b.dataset.act === 'incident') {
+        s.what = 'Отмечено как атака. Инцидент открыт — удалите скрипт и смените доступы.';
+        s.chain = null;
+        s.status = 'incident';
+      } else {
+        s.status = 'ok';
+        s.risk = 0.02;
+        s.what = { accept: 'Изменение принято в эталон и стало нормой.', hide: 'Находка скрыта.', done: 'Отмечено как оформленное.' }[b.dataset.act];
+        s.chain = null;
+      }
+      render();
+    });
+
+    // окно «Добавить сайт»
+    var dlg = $('add'), form = $('add-form');
+    function snippet() {
+      var host = form.elements.host.value.trim().replace(/^https?:\/\//, '').replace(/\/.*$/, '') || 'example.ru';
+      $('code').textContent = '<script src="https://argus.mshkr6.ru/sensor.js" data-site="' + host + '" defer><\/script>';
+      return host;
+    }
+    $('add-open').addEventListener('click', function () { form.reset(); snippet(); dlg.showModal(); });
+    dlg.querySelector('[data-close]').addEventListener('click', function () { dlg.close(); });
+    dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+    form.elements.host.addEventListener('input', snippet);
+    $('copy').addEventListener('click', function () {
+      var btn = this;
+      if (navigator.clipboard) navigator.clipboard.writeText($('code').textContent).then(function () {
+        btn.textContent = 'Готово';
+        setTimeout(function () { btn.textContent = 'Копировать'; }, 1500);
+      }).catch(function () {});
+    });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      sites.push({ host: snippet(), status: 'learn', risk: 0, mode: 'Обучение', learned: 0 });
+      dlg.close();
+      render();
+    });
+
+    render();
+  })();
+</script>
+</body>
+</html>
