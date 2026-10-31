@@ -8,10 +8,10 @@
  file:    site/cabinet.html
  author:  mshkr6
  created: 2026-10-29
- about:   Прототип личного кабинета Argus в стилистике сайта «сто глаз»: у каждого сайта свой глаз
-          (спокоен / насторожен / тревога / 152-ФЗ / спит на обучении), сводка, риск, цепочка
-          «скрипт → действие → получатель», решения владельца и окно «Добавить сайт».
-          Данные демонстрационные, живут только в странице.
+ about:   Личный кабинет Argus — список сайтов владельца в стилистике «сто глаз»: у каждого сайта свой глаз
+          (спокоен / насторожен / тревога / 152-ФЗ / спит на обучении), статус, риск, главное изменение
+          и состояние датчика. Карточка открывает пульт сайта (dashboard.html?site=…).
+          Демо-данные — из assets/demo-sites.js, те же, что видит пульт; решения владельца общие.
 -->
 <!doctype html>
 <html lang="ru">
@@ -25,6 +25,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Unbounded:wght@700;800&family=JetBrains+Mono:wght@400;600&display=swap">
   <link rel="stylesheet" href="assets/argus.css">
+  <script src="assets/demo-snapshot.js"></script>
+  <script src="assets/demo-sites.js"></script>
   <style>
     main { position: relative; isolation: isolate; padding-block: clamp(40px, 6vw, 72px) clamp(64px, 8vw, 104px); }
     .bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; background:
@@ -50,7 +52,8 @@
     .stat span { display: block; margin-top: 8px; font-size: 14px; color: var(--lav); }
 
     .sites { display: grid; gap: 14px; max-width: 980px; margin: 24px auto 0; }
-    .site { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 18px; padding: 22px; border-radius: 22px; background: var(--glass); border: 1px solid var(--line); }
+    .site { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 18px; padding: 22px; border-radius: 22px; background: var(--glass); border: 1px solid var(--line); text-decoration: none; color: inherit; transition: border-color .2s, transform .2s; }
+    a.site:hover { border-color: var(--violet-soft); transform: translateY(-2px); }
     .site.is-bad { border-color: color-mix(in srgb, var(--red) 40%, transparent); background: linear-gradient(180deg, rgba(255, 45, 70, .07), transparent 60%), var(--glass); }
     .site.is-law { border-color: color-mix(in srgb, var(--violet) 35%, transparent); }
     .site-eye svg { width: 64px; height: 40px; }
@@ -60,12 +63,18 @@
     .site-risk { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; margin-top: 14px; font-size: 14px; color: var(--lav); }
     .site-risk b { font: 800 16px/1 var(--f-display); color: var(--st-t); font-variant-numeric: tabular-nums; }
     .what { margin-top: 12px; color: var(--soft); font-size: 15px; }
-    .chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--carbon); border: 1px solid var(--line); font: 400 13px/1.5 var(--f-mono); overflow-wrap: anywhere; }
-    .chain span { color: var(--lav-dim); }
-    .chain .bad { color: var(--red-soft); }
-    .chain .law { color: var(--violet-soft); }
-    .chain .warn { color: var(--amber); }
-    .decide { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .what b { color: var(--silver); font-weight: 600; }
+    .what { overflow-wrap: anywhere; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip { font: 600 12px/1 var(--f-body); padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line2); color: var(--soft); white-space: nowrap; }
+    .chip.is-bad, .chip.is-law, .chip.is-warn { color: var(--st-t); border-color: color-mix(in srgb, var(--st) 45%, transparent); }
+    .site-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--lav); }
+    .sensor { display: inline-flex; align-items: center; gap: 8px; }
+    .sensor::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--soft); box-shadow: 0 0 0 4px rgba(211, 208, 226, .14); }
+    .sensor.weak { color: var(--amber); }
+    .sensor.weak::before { background: var(--amber); box-shadow: 0 0 0 4px rgba(255, 181, 71, .16); }
+    .sensor.off::before { background: var(--lav-dim); box-shadow: none; }
+    .go { color: var(--silver); font-weight: 600; white-space: nowrap; }
     .learn { margin-top: 14px; }
     .learn .risk::after { display: none; }
     .learn .risk > i { background: var(--violet-soft); }
@@ -136,32 +145,15 @@
 
 <script>
   (function () {
-    var LEARN_TARGET = 50;
+    var DEMO = window.ARGUS_DEMO;
     var STATUS = {
-      bad:      { cls: 'is-bad',  label: 'Нужны действия' },
-      incident: { cls: 'is-bad',  label: 'Инцидент' },
-      law:      { cls: 'is-law',  label: '152-ФЗ' },
-      warn:     { cls: 'is-warn', label: 'Проверьте' },
-      ok:       { cls: 'is-ok',   label: 'Всё хорошо ✓' },
-      learn:    { cls: 'is-ok',   label: 'Обучение' }
+      bad:   { cls: 'is-bad',  label: 'Нужны действия', iris: '#ff2d46' },
+      law:   { cls: 'is-law',  label: '152-ФЗ',         iris: '#c4b5fd' },
+      warn:  { cls: 'is-warn', label: 'Проверьте',      iris: '#ffb547' },
+      ok:    { cls: 'is-ok',   label: 'Всё хорошо ✓',   iris: '#8b5cf6' },
+      learn: { cls: 'is-ok',   label: 'Обучение' }
     };
-    var IRIS = { bad: '#ff2d46', incident: '#ff2d46', law: '#c4b5fd', warn: '#ffb547', ok: '#8b5cf6' };
-
-    // демо-данные; в продукте — GET /api/sites и /api/sites/:id/summary
-    var sites = [
-      { host: 'uyut-remont.ru', status: 'bad', risk: 1.00, mode: 'наблюдение',
-        what: 'Новый скрипт читает телефон и карту и отправляет их на чужой сервер.',
-        chain: [['скрипт', 'static-cdn.example/jquery-ui.min.js', 'bad', 'новый'], ['читает', 'phone, card', 'bad', 'не по эталону'], ['→', 'static-cdn.example', 'law', 'вне РФ']] },
-      { host: 'clinic-dent.ru', status: 'law', risk: 0.85, mode: 'наблюдение',
-        what: 'E-mail из формы записи уходит в Google Analytics (США). Это не взлом, а нарушение локализации ПДн.',
-        chain: [['скрипт', 'googletagmanager.com/gtag.js', '', ''], ['читает', 'email', 'law', ''], ['→', 'google-analytics.com', 'law', 'США']] },
-      { host: 'flowers-don.ru', status: 'warn', risk: 0.51, mode: 'наблюдение',
-        what: 'Появился виджет Яндекс Карт. Это ниже порога тревоги, но подтвердите, что виджет ставили вы.',
-        chain: [['скрипт', 'api-maps.yandex.ru', 'warn', 'новый'], ['→', 'yandex.ru', '', 'RU']] },
-      { host: 'mshkr6.ru', status: 'ok', risk: 0.04, mode: 'наблюдение',
-        what: 'Эталон: 6 скриптов, 3 получателя. Отклонений за неделю нет.' },
-      { host: 'shop-new.ru', status: 'learn', risk: 0, mode: 'обучение', learned: 34 }
-    ];
+    var added = [];   // сайты, добавленные в этой вкладке: ждут первое событие от датчика
 
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); };
@@ -174,78 +166,66 @@
           '<path d="M15 25l-3 5M25 29l-1 5M39 29l1 5M49 25l3 5" stroke="#a19cb9" stroke-width="2.5" stroke-linecap="round"/></svg>';
       }
       return '<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M3 20C12 7 22 3 32 3s20 4 29 17c-9 13-19 17-29 17S12 33 3 20Z" fill="#ece9f7"/>' +
-        '<circle cx="32" cy="20" r="11" fill="' + IRIS[status] + '"/><circle cx="32" cy="20" r="5" fill="#0b0a10"/><circle cx="35.5" cy="16.5" r="2" fill="#fff"/></svg>';
+        '<circle cx="32" cy="20" r="11" fill="' + STATUS[status].iris + '"/><circle cx="32" cy="20" r="5" fill="#0b0a10"/><circle cx="35.5" cy="16.5" r="2" fill="#fff"/></svg>';
     }
 
     try { var u = sessionStorage.getItem('argus-user'); if (u) $('user-email').textContent = u; } catch (e) {}
 
-    function renderHead() {
-      var c = { bad: 0, law: 0, warn: 0, ok: 0 };
-      sites.forEach(function (s) { var k = s.status === 'incident' ? 'bad' : s.status; if (k in c) c[k]++; });
-      var open = sites.filter(function (s) { return s.status === 'bad' || s.status === 'law' || s.status === 'warn'; }).length;
-      $('verdict').innerHTML = open
-        ? 'Ждут решения: <b>' + open + ' ' + plural(open, 'сайт', 'сайта', 'сайтов') + '</b>. Красным подсвечено только то, что нужно разобрать.'
-        : 'Всё спокойно. Глаза открыты, отличий от нормы нет.';
-      $('sum').innerHTML =
-        '<div class="stat"><b>' + sites.length + '</b><span>' + plural(sites.length, 'сайт', 'сайта', 'сайтов') + '</span></div>' +
-        '<div class="stat is-bad"><b>' + c.bad + '</b><span>нужны действия</span></div>' +
-        '<div class="stat is-law"><b>' + c.law + '</b><span>152-ФЗ</span></div>' +
-        '<div class="stat is-ok"><b>' + c.ok + '</b><span>всё хорошо</span></div>';
+    function sensorLine(c) {
+      var s = c.sensor, pct = Math.round(s.coverage * 100) + ' %';
+      if (!s.weak) return '<span class="sensor">датчик на связи · ' + s.ageSec + ' с назад · покрытие ' + pct + '</span>';
+      return '<span class="sensor weak">датчик работает на ' + pct + ' просмотров' + (s.gap ? ' · без датчика: ' + esc(s.gap) : '') + '</span>';
     }
 
-    function renderSite(s, i) {
-      var st = STATUS[s.status];
-      var h = '<article class="site ' + st.cls + '"><div class="site-eye">' + eye(s.status) + '</div><div>' +
-        '<div class="site-top"><h3>' + esc(s.host) + '</h3>' +
-        (s.status === 'learn' ? '' : '<span class="mode">' + s.mode + '</span>') +
+    function renderCard(c) {
+      var st = STATUS[c.status];
+      var h = '<a class="site ' + st.cls + '" href="dashboard.html?site=' + encodeURIComponent(c.id) + '"><div class="site-eye">' + eye(c.status) + '</div><div>' +
+        '<div class="site-top"><h3>' + esc(c.host) + '</h3>' +
+        (c.status === 'learn' ? '' : '<span class="mode">наблюдение</span>') +
         '<span class="badge ' + st.cls + '">' + st.label + '</span></div>';
 
-      if (s.status === 'learn') {
-        var p = Math.min(100, Math.round(s.learned / LEARN_TARGET * 100));
-        return h + '<div class="learn"><div class="risk"><i style="width:' + p + '%"></i></div>' +
-          '<p>Глаз пока спит и учится: ' + s.learned + ' из ' + LEARN_TARGET + ' посещений. Потом проверьте эталон.</p></div></div></article>';
+      if (c.status === 'learn') {
+        var p = Math.min(100, Math.round(c.learn.done / c.learn.target * 100));
+        h += '<div class="learn"><div class="risk"><i style="width:' + p + '%"></i></div>' +
+          '<p>Глаз пока спит и учится: ' + c.learn.done + ' из ' + c.learn.target + ' посещений. Тревог в это время нет.</p></div>';
+      } else {
+        h += '<div class="site-risk"><div class="risk"><i style="width:' + Math.max(2, c.risk * 100) + '%"></i></div>' +
+          '<span>риск <b>' + fmt(c.risk) + '</b></span></div>';
+        h += c.top
+          ? '<p class="what"><b>Главное:</b> ' + esc(c.top.title) + '</p>'
+          : '<p class="what">Отклонений нет: ' + c.monitor + ' ' + plural(c.monitor, 'посещение', 'посещения', 'посещений') + ' под наблюдением совпали с эталоном.</p>';
+        var chips = '';
+        if (c.open) chips += '<span class="chip ' + (c.status === 'bad' ? 'is-bad' : 'is-warn') + '">ждут решения: ' + c.open + '</span>';
+        if (c.openLaw) chips += '<span class="chip is-law">152-ФЗ: ' + c.openLaw + '</span>';
+        if (c.incidents) chips += '<span class="chip is-bad">инцидентов: ' + c.incidents + '</span>';
+        if (chips) h += '<div class="chips">' + chips + '</div>';
       }
+      return h + '<div class="site-foot">' + sensorLine(c) + '<span class="go">Открыть пульт →</span></div></div></a>';
+    }
 
-      h += '<div class="site-risk"><div class="risk"><i style="width:' + Math.max(2, s.risk * 100) + '%"></i></div>' +
-        '<span>риск <b>' + fmt(s.risk) + '</b></span></div>';
-      if (s.what) h += '<p class="what">' + esc(s.what) + '</p>';
-      if (s.chain) {
-        h += '<div class="chain">' + s.chain.map(function (c) {
-          return '<span>' + c[0] + '</span> ' + esc(c[1]) + (c[3] ? ' <span class="' + c[2] + '">' + c[3] + '</span>' : '');
-        }).join(' ') + '</div>';
-      }
-      if (s.status === 'bad' || s.status === 'warn') {
-        h += '<div class="decide">' +
-          '<button class="btn sm" type="button" data-act="accept" data-i="' + i + '">Это мы — принять в эталон</button>' +
-          '<button class="btn sm" type="button" data-act="incident" data-i="' + i + '">Это атака — инцидент</button>' +
-          '<button class="btn sm" type="button" data-act="hide" data-i="' + i + '">Скрыть</button></div>';
-      } else if (s.status === 'law') {
-        // правовые находки в эталон не принимаются — только «оформлено»
-        h += '<div class="decide"><button class="btn sm" type="button" data-act="done" data-i="' + i + '">Оформлено</button></div>';
-      }
-      return h + '</div></article>';
+    function renderAdded(host) {
+      return '<article class="site is-ok"><div class="site-eye">' + eye('learn') + '</div><div>' +
+        '<div class="site-top"><h3>' + esc(host) + '</h3><span class="badge is-ok">Обучение</span></div>' +
+        '<div class="learn"><div class="risk"><i style="width:0%"></i></div><p>Ждём первое событие: вставьте датчик в &lt;head&gt; и откройте любую страницу сайта.</p></div>' +
+        '<div class="site-foot"><span class="sensor off">датчик ещё не выходил на связь</span></div></div></article>';
     }
 
     function render() {
-      renderHead();
-      $('sites').innerHTML = sites.map(renderSite).join('');
+      var cards = DEMO.ids.map(DEMO.card);
+      var n = cards.length + added.length;
+      var c = { bad: 0, law: 0, ok: 0 };
+      cards.forEach(function (x) { if (x.status in c) c[x.status]++; if (x.status === 'bad' && x.openLaw) c.law++; });
+      var wait = cards.filter(function (x) { return x.status === 'bad' || x.status === 'law' || x.status === 'warn'; }).length;
+      $('verdict').innerHTML = wait
+        ? 'Ждут решения: <b>' + wait + ' ' + plural(wait, 'сайт', 'сайта', 'сайтов') + '</b>. Откройте сайт, чтобы увидеть, что изменилось и что делать.'
+        : 'Всё спокойно. Глаза открыты, отличий от нормы нет.';
+      $('sum').innerHTML =
+        '<div class="stat"><b>' + n + '</b><span>' + plural(n, 'сайт', 'сайта', 'сайтов') + '</span></div>' +
+        '<div class="stat is-bad"><b>' + c.bad + '</b><span>нужны действия</span></div>' +
+        '<div class="stat is-law"><b>' + c.law + '</b><span>с нарушением 152-ФЗ</span></div>' +
+        '<div class="stat is-ok"><b>' + c.ok + '</b><span>всё хорошо</span></div>';
+      $('sites').innerHTML = cards.map(renderCard).join('') + added.map(renderAdded).join('');
     }
-
-    $('sites').addEventListener('click', function (e) {
-      var b = e.target.closest('[data-act]');
-      if (!b) return;
-      var s = sites[+b.dataset.i];
-      s.chain = null;
-      if (b.dataset.act === 'incident') {
-        s.status = 'incident';
-        s.what = 'Отмечено как атака. Инцидент открыт: удалите скрипт и смените доступы.';
-      } else {
-        s.status = 'ok';
-        s.risk = 0.02;
-        s.what = { accept: 'Изменение принято в эталон и стало нормой.', hide: 'Находка скрыта.', done: 'Отмечено как оформленное.' }[b.dataset.act];
-      }
-      render();
-    });
 
     // окно «Добавить сайт»
     var dlg = $('add'), form = $('add-form');
@@ -266,11 +246,13 @@
     });
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      sites.push({ host: snippet(), status: 'learn', risk: 0, mode: 'обучение', learned: 0 });
+      added.push(snippet());
       dlg.close();
       render();
     });
 
+    // вернулись из пульта кнопкой «назад» — решения могли измениться
+    addEventListener('pageshow', render);
     render();
   })();
 </script>
