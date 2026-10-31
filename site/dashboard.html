@@ -572,7 +572,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* демо с несколькими сайтами (assets/demo-sites.js): снимок выбранного в ?site= сайта */
 const DEMO = window.ARGUS_DEMO || null;
-const SNAP = DEMO ? DEMO.snap(new URLSearchParams(location.search).get('site')) : window.__DOZOR_SNAPSHOT__ || null;
+const SNAP = DEMO ? DEMO.snap(new URLSearchParams(location.search).get('site') || location.hash.slice(1)) : window.__DOZOR_SNAPSHOT__ || null;
 /* Telegram Mini App: Telegram открывает страницу с #tgWebAppData=… в адресе.
    Скрипт Telegram грузим только в этом случае — в обычном браузере внешних запросов нет. */
 const TG = {on: /tgWebAppData=/.test(location.hash + location.search), app: null, initData: ''};
@@ -680,7 +680,8 @@ async function api(p, opt) {
 async function loadSites() {
   const list = await api('sites'); const sel = $('#site'); const cur = sel.value;
   sel.innerHTML = list.map(s => `<option value="${esc(s.id)}">${esc(s.id)}</option>`).join('') || '<option value="">сайтов нет</option>';
-  if (cur && list.some(s => s.id === cur)) sel.value = cur;
+  if (DEMO) sel.value = SNAP.summary.id;
+  else if (cur && list.some(s => s.id === cur)) sel.value = cur;
   else if (QS.get('site') && list.some(s => s.id === QS.get('site'))) sel.value = QS.get('site');
   site = sel.value || null;
 }
@@ -1234,7 +1235,7 @@ async function refresh(force) {
   } catch (e) { site = null; }
 }
 const post = (p, body) => api(p, {method:'POST', body:JSON.stringify(body)}).then(() => refresh(true));
-$('#site').onchange = e => { if (DEMO) { location.search = '?site=' + encodeURIComponent(e.target.value); return; } site = e.target.value; selected = null; refresh(true); };
+$('#site').onchange = e => { if (DEMO) { const v = encodeURIComponent(e.target.value); location.href = 'dashboard.html?site=' + v + '#' + v; return; } site = e.target.value; selected = null; refresh(true); };
 
 
 if (SNAP) {
